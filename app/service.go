@@ -15,7 +15,28 @@
  */
 package main
 
-func GetApplicationDetails(applicationId string) *ApplicationGetResponse{
-	return nil
+type CatalogApi interface {
+	UpdateApplicationState(applicationId string)
+	GetApplicationDetails(applicationId string)
+}
+
+func (c *CatalogConnector) GetApplicationDetails(applicationId string) (*ApplicationGetResponse, error) {
+	response := ApplicationGetResponse{}
+
+	status, body, err := RestGET(c.Server+"/applications/"+applicationId, c.Client)
+
+	if status != 200 {
+		logger.Error("[GetApplicationDetails] Status: ", status)
+		logger.Error("[GetApplicationDetails] Error: ", err)
+		return ApplicationGetResponse{}, err
+	}
+
+	err = json.Unmarshal(body, &response)
+	if err != nil {
+		logger.Error("[GetApplicationDetails] Error: ", err)
+		return ApplicationGetResponse{}, err
+	}
+
+	return response, nil
 }
 
