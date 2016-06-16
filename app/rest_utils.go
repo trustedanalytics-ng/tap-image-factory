@@ -42,7 +42,6 @@ func RestDELETE(url, body string, client *http.Client) (int, []byte, error) {
 	return makeRequest("DELETE", url, "", "application/json", client)
 }
 
-
 func makeRequest(reqType, url, body, contentType string, client *http.Client) (int, []byte, error) {
 	logger.Info("Doing:  ", reqType, url)
 
@@ -72,4 +71,3 @@ func makeRequest(reqType, url, body, contentType string, client *http.Client) (i
 	logger.Info("CODE:", ret_code, "BODY:", string(data))
 	return ret_code, data, nil
 }
-

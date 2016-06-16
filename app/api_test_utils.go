@@ -16,14 +16,21 @@
 package main
 
 import (
-	"testing"
-	"net/http"
-	"net/http/httptest"
 	"bytes"
 	"encoding/json"
+	"net/http"
+	"net/http/httptest"
+	"testing"
 
 	"github.com/gocraft/web"
+	"github.com/smartystreets/goconvey/convey"
+	"strings"
 )
+
+func prepareMocksAndRouter(t *testing.T) (router *web.Router) {
+	router = web.New(Context{})
+	return router
+}
 
 func sendRequest(rType, path string, body []byte, r *web.Router) *httptest.ResponseRecorder {
 	req, _ := http.NewRequest(rType, path, bytes.NewReader(body))
@@ -40,4 +47,11 @@ func marshallToJson(t *testing.T, serviceInstance interface{}) []byte {
 	} else {
 		return body
 	}
+}
+
+func assertResponse(rr *httptest.ResponseRecorder, body string, code int) {
+	if body != "" {
+		convey.So(strings.TrimSpace(string(rr.Body.Bytes())), convey.ShouldContainSubstring, body)
+	}
+	convey.So(rr.Code, convey.ShouldEqual, code)
 }

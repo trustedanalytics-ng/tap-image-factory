@@ -23,4 +23,3 @@ import (
 func (c *Context) BuildImage(rw web.ResponseWriter, req *web.Request) {
 	rw.WriteHeader(201)
 }
-

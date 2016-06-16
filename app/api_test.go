@@ -17,19 +17,11 @@ package main
 
 import (
 	"testing"
-	"net/http/httptest"
-	"strings"
 
-	"github.com/gocraft/web"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
 const URLbuildImage = "/rest/v1/app"
-
-func prepareMocksAndRouter(t *testing.T) (router *web.Router) {
-	router = web.New(Context{})
-	return router
-}
 
 func TestBuildImage(t *testing.T) {
 	request := BuildImagePostRequest{ApplicationId: "test-app-id"}
@@ -42,11 +34,4 @@ func TestBuildImage(t *testing.T) {
 			assertResponse(response, "", 201)
 		})
 	})
-}
-
-func assertResponse(rr *httptest.ResponseRecorder, body string, code int) {
-	if body != "" {
-		So(strings.TrimSpace(string(rr.Body.Bytes())), ShouldContainSubstring, body)
-	}
-	So(rr.Code, ShouldEqual, code)
 }

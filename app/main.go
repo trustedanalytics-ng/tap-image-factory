@@ -27,14 +27,14 @@ type Context struct{}
 
 var (
 	logger = logger_wrapper.InitLogger("main")
-	port = "8080"
+	port   = "8080"
 )
 
 func main() {
 	r := web.New(Context{})
 	r.Post("/rest/v1/app", (*Context).BuildImage)
 
-	err := http.ListenAndServe("localhost"+":"+port, r)
+	err := http.ListenAndServe("localhost:"+port, r)
 	if err != nil {
 		logger.Critical("Couldn't serve app on port ", port, " Application will be closed now.")
 	}

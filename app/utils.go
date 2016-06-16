@@ -18,27 +18,27 @@ package main
 
 import (
 	"net/http"
-	"time"
 	"os"
 	"strings"
+	"time"
 )
 
 type ApplicationGetResponse struct {
-	ApplicationId		string	`json:"id"`
-	TemplateId		string	`json:"templateId"`
-	BaseImage		string	`json:"image"`
-	Replication		string	`json:"replication"`
-	Type			string	`json:"type"`
-	State			string	`json:"state"`
+	ApplicationId string `json:"id"`
+	TemplateId    string `json:"templateId"`
+	BaseImage     string `json:"image"`
+	Replication   string `json:"replication"`
+	Type          string `json:"type"`
+	State         string `json:"state"`
 }
 
 type ApplicationStatePutRequest struct {
-	ApplicationId		string	`json:"id"`
-	State			string	`json:"state"`
+	ApplicationId string `json:"id"`
+	State         string `json:"state"`
 }
 
 type BuildImagePostRequest struct {
-	ApplicationId    	string	`json:"id"`
+	ApplicationId string `json:"id"`
 }
 
 func CurrentEnv() map[string]string {
@@ -73,8 +73,8 @@ func GetCatalogAddress() string {
 }
 
 type CatalogConnector struct {
-	Server     string
-	Client     *http.Client
+	Server string
+	Client *http.Client
 }
 
 func NewCatalogConnector() *CatalogConnector {
@@ -84,6 +84,5 @@ func NewCatalogConnector() *CatalogConnector {
 	return &CatalogConnector{
 		Server: GetCatalogAddress(),
 		Client: clientCreator,
-
 	}
 }

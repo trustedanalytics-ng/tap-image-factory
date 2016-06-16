@@ -54,7 +54,7 @@ func (c *CatalogConnector) UpdateApplicationState(applicationId, state string) e
 
 	status, _, err := RestPUT(c.Server+"/applications/"+applicationId, string(req), c.Client)
 
-	if status != http_ok {
+	if status != http_ok || err != nil {
 		logger.Error("[UpdateApplicationState] Status: ", status)
 		logger.Error("[UpdateApplicationState] Error: ", err)
 		return err
