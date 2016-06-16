@@ -16,10 +16,28 @@
 package main
 
 import (
+	"testing"
+	"net/http"
+	"net/http/httptest"
+	"bytes"
+	"encoding/json"
+
 	"github.com/gocraft/web"
 )
 
-func (c *Context) BuildImage(rw web.ResponseWriter, req *web.Request) {
-	rw.WriteHeader(201)
+func sendRequest(rType, path string, body []byte, r *web.Router) *httptest.ResponseRecorder {
+	req, _ := http.NewRequest(rType, path, bytes.NewReader(body))
+	rr := httptest.NewRecorder()
+	r.ServeHTTP(rr, req)
+	return rr
 }
 
+func marshallToJson(t *testing.T, serviceInstance interface{}) []byte {
+	if body, err := json.Marshal(serviceInstance); err != nil {
+		t.Errorf(err.Error())
+		t.FailNow()
+		return nil
+	} else {
+		return body
+	}
+}
