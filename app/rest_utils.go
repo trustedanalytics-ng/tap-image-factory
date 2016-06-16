@@ -22,6 +22,10 @@ import (
 	"net/http"
 )
 
+const (
+	http_ok = 200
+)
+
 func RestGET(url string, client *http.Client) (int, []byte, error) {
 	return makeRequest("GET", url, "", "application/json", client)
 }

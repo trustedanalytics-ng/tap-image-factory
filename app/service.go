@@ -16,6 +16,10 @@
 
 package main
 
+import (
+	"encoding/json"
+)
+
 type CatalogApi interface {
 	UpdateApplicationState(applicationId string)
 	GetApplicationDetails(applicationId string)
@@ -26,18 +30,40 @@ func (c *CatalogConnector) GetApplicationDetails(applicationId string) (*Applica
 
 	status, body, err := RestGET(c.Server+"/applications/"+applicationId, c.Client)
 
-	if status != 200 {
+	if status != http_ok || err != nil {
 		logger.Error("[GetApplicationDetails] Status: ", status)
 		logger.Error("[GetApplicationDetails] Error: ", err)
-		return ApplicationGetResponse{}, err
+		return &ApplicationGetResponse{}, err
 	}
 
 	err = json.Unmarshal(body, &response)
 	if err != nil {
 		logger.Error("[GetApplicationDetails] Error: ", err)
-		return ApplicationGetResponse{}, err
+		return &ApplicationGetResponse{}, err
 	}
 
-	return response, nil
+	return &response, nil
 }
 
+func (c *CatalogConnector) UpdateApplicationState(applicationId, state string) error {
+
+	req, err := json.Marshal(ApplicationStatePutRequest{applicationId, state})
+	if err != nil {
+		return err
+	}
+
+	status, _, err := RestPUT(c.Server+"/applications/"+applicationId, string(req), c.Client)
+
+	if status != http_ok {
+		logger.Error("[UpdateApplicationState] Status: ", status)
+		logger.Error("[UpdateApplicationState] Error: ", err)
+		return err
+	}
+
+	if err != nil {
+		logger.Error("[UpdateApplicationState] Error: ", err)
+		return err
+	}
+
+	return nil
+}
