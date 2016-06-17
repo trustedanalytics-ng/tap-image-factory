@@ -18,6 +18,7 @@ package main
 
 import (
 	"encoding/json"
+	"github.com/trustedanalytics/tap-go-common/http"
 )
 
 type CatalogApi interface {
@@ -28,9 +29,9 @@ type CatalogApi interface {
 func (c *CatalogConnector) GetApplicationDetails(applicationId string) (*ApplicationGetResponse, error) {
 	response := ApplicationGetResponse{}
 
-	status, body, err := RestGET(c.Server+"/applications/"+applicationId, c.Client)
+	status, body, err := http.RestGET(c.Server+"/applications/"+applicationId, nil, c.Client)
 
-	if status != http_ok || err != nil {
+	if status != 200 || err != nil {
 		logger.Error("[GetApplicationDetails] Status: ", status)
 		logger.Error("[GetApplicationDetails] Error: ", err)
 		return &ApplicationGetResponse{}, err
@@ -52,9 +53,9 @@ func (c *CatalogConnector) UpdateApplicationState(applicationId, state string) e
 		return err
 	}
 
-	status, _, err := RestPUT(c.Server+"/applications/"+applicationId, string(req), c.Client)
+	status, _, err := http.RestPUT(c.Server+"/applications/"+applicationId, nil, string(req), c.Client)
 
-	if status != http_ok || err != nil {
+	if status != 200 || err != nil {
 		logger.Error("[UpdateApplicationState] Status: ", status)
 		logger.Error("[UpdateApplicationState] Error: ", err)
 		return err
