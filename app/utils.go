@@ -45,17 +45,31 @@ func GetCatalogAddress() string {
 	return os.Getenv("CATALOG_ADDRESS")
 }
 
-type CatalogConnector struct {
+func GetBlobStoreAddress() string {
+	return os.Getenv("BLOB_STORE_ADDRESS")
+}
+
+type Connector struct {
 	Server string
 	Client *http.Client
 }
 
-func NewCatalogConnector() *CatalogConnector {
+func NewCatalogConnector() *Connector {
 	transport := &http.Transport{}
 	clientCreator := &http.Client{Transport: transport, Timeout: time.Duration(30 * time.Minute)}
 
-	return &CatalogConnector{
+	return &Connector{
 		Server: GetCatalogAddress(),
+		Client: clientCreator,
+	}
+}
+
+func NewBlobStoreConnector() *Connector {
+	transport := &http.Transport{}
+	clientCreator := &http.Client{Transport: transport, Timeout: time.Duration(30 * time.Minute)}
+
+	return &Connector{
+		Server: GetBlobStoreAddress(),
 		Client: clientCreator,
 	}
 }

@@ -19,6 +19,7 @@ package main
 import (
 	"encoding/json"
 	"github.com/trustedanalytics/tap-go-common/http"
+	"io/ioutil"
 )
 
 type CatalogApi interface {
@@ -26,7 +27,12 @@ type CatalogApi interface {
 	GetApplicationDetails(applicationId string)
 }
 
-func (c *CatalogConnector) GetApplicationDetails(applicationId string) (*ApplicationGetResponse, error) {
+type BlobStoreApi interface {
+	GetBlob(applicationId string)
+	DeleteBlob(applicationId string)
+}
+
+func (c *Connector) GetApplicationDetails(applicationId string) (*ApplicationGetResponse, error) {
 	response := ApplicationGetResponse{}
 
 	status, body, err := http.RestGET(c.Server+"/applications/"+applicationId, nil, c.Client)
@@ -42,11 +48,10 @@ func (c *CatalogConnector) GetApplicationDetails(applicationId string) (*Applica
 		logger.Error("[GetApplicationDetails] Error: ", err)
 		return &ApplicationGetResponse{}, err
 	}
-
 	return &response, nil
 }
 
-func (c *CatalogConnector) UpdateApplicationState(applicationId, state string) error {
+func (c *Connector) UpdateApplicationState(applicationId, state string) error {
 
 	req, err := json.Marshal(ApplicationStatePutRequest{applicationId, state})
 	if err != nil {
@@ -60,11 +65,15 @@ func (c *CatalogConnector) UpdateApplicationState(applicationId, state string) e
 		logger.Error("[UpdateApplicationState] Error: ", err)
 		return err
 	}
-
-	if err != nil {
-		logger.Error("[UpdateApplicationState] Error: ", err)
-		return err
-	}
-
 	return nil
+}
+
+func (c *Connector) GetBlob(applicationId string) ([]byte, error) {
+	status, res, err := http.RestGET(c.Server+"/blobs/"+applicationId, nil, c.Client)
+	if status != 200 || err != nil {
+		logger.Error("[GetBlob] Status: ", status)
+		logger.Error("[GetBlob] Error: ", err)
+		return nil, err
+	}
+	return res, err
 }
