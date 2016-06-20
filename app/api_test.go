@@ -21,7 +21,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-const URLbuildImage = "/rest/v1/app"
+const URLbuildImage = "/api/v1/app"
 
 func TestBuildImage(t *testing.T) {
 	request := BuildImagePostRequest{ApplicationId: "test-app-id"}

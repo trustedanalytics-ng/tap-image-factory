@@ -42,11 +42,11 @@ type BuildImagePostRequest struct {
 }
 
 func GetCatalogAddress() string {
-	return os.Getenv("CATALOG_ADDRESS")
+	return os.Getenv("CATALOG_ADDRESS") + "/api/v1"
 }
 
 func GetBlobStoreAddress() string {
-	return os.Getenv("BLOB_STORE_ADDRESS")
+	return os.Getenv("BLOB_STORE_ADDRESS") + "/api/v1"
 }
 
 type Connector struct {

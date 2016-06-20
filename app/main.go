@@ -32,7 +32,7 @@ var (
 
 func main() {
 	r := web.New(Context{})
-	r.Post("/rest/v1/app", (*Context).BuildImage)
+	r.Post("/api/v1/app", (*Context).BuildImage)
 
 	err := http.ListenAndServe("localhost:"+port, r)
 	if err != nil {
