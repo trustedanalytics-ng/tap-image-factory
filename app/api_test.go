@@ -30,7 +30,7 @@ func TestBuildImage(t *testing.T) {
 
 	Convey("Test BuildImage", t, func() {
 		Convey("Should returns proper response", func() {
-			response := sendRequest("POST", URLbuildImage, marshallToJson(t, request), router)
+			response := sendRequest("POST", URLbuildImage, marshalToJson(t, request), router)
 			assertResponse(response, "", 201)
 		})
 	})

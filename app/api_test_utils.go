@@ -39,7 +39,7 @@ func sendRequest(rType, path string, body []byte, r *web.Router) *httptest.Respo
 	return rr
 }
 
-func marshallToJson(t *testing.T, serviceInstance interface{}) []byte {
+func marshalToJson(t *testing.T, serviceInstance interface{}) []byte {
 	if body, err := json.Marshal(serviceInstance); err != nil {
 		t.Errorf(err.Error())
 		t.FailNow()
