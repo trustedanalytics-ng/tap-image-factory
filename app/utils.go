@@ -19,7 +19,6 @@ package main
 import (
 	"net/http"
 	"os"
-	"strings"
 	"time"
 )
 
