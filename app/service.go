@@ -20,6 +20,7 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/trustedanalytics/tap-go-common/http"
+	"strconv"
 )
 
 type CatalogApi interface {
@@ -38,11 +39,10 @@ func (c *Connector) GetApplicationDetails(applicationId string) (*ApplicationGet
 	status, body, err := http.RestGET(c.Server+"/applications/"+applicationId, nil, c.Client)
 
 	if status != 200 || err != nil {
-		logger.Error("[GetApplicationDetails] Status: ", status)
-		logger.Error("[GetApplicationDetails] Error: ", err)
 		if err == nil {
 			err = errors.New("Invalid status: " + string(status))
 		}
+		logger.Error("[GetApplicationDetails] Error: ", err)
 		return &ApplicationGetResponse{}, err
 	}
 
@@ -64,23 +64,45 @@ func (c *Connector) UpdateApplicationState(applicationId, state string) error {
 	status, _, err := http.RestPATCH(c.Server+"/applications/"+applicationId, string(req), nil, c.Client)
 
 	if status != 200 || err != nil {
-		logger.Error("[UpdateApplicationState] Status: ", status)
-		logger.Error("[UpdateApplicationState] Error: ", err)
 		if err == nil {
-			err = errors.New("Invalid status: " + string(status))
+			err = errors.New("Invalid status: " + strconv.Itoa(status))
 		}
+		logger.Error("[UpdateApplicationState] Error: ", err)
 		return err
 	}
 	return nil
 }
 
-func (c *Connector) GetBlob(applicationId string) ([]byte, error) {
+func (c *Connector) GetApplicationBlob(applicationId string) ([]byte, error) {
 	blobId := "app_" + applicationId
+	return c.GetBlob(blobId)
+}
+
+func (c *Connector) GetBlob(blobId string) ([]byte, error) {
 	status, res, err := http.RestGET(c.Server+"/blobs/"+blobId, nil, c.Client)
 	if status != 200 || err != nil {
-		logger.Error("[GetBlob] Status: ", status)
+		if err == nil {
+			err = errors.New("Invalid status: " + strconv.Itoa(status))
+		}
 		logger.Error("[GetBlob] Error: ", err)
 		return nil, err
 	}
 	return res, err
+}
+
+func (c *Connector) DeleteApplicationBlob(applicationId string) error {
+	blobId := "app_" + applicationId
+	return c.DeleteBlob(blobId)
+}
+
+func (c *Connector) DeleteBlob(blobId string) error {
+	status, _, err := http.RestDELETE(c.Server+"/blobs/"+blobId, "", nil, c.Client)
+	if status != 204 || err != nil {
+		if err == nil {
+			err = errors.New("Invalid status: " + strconv.Itoa(status))
+		}
+		logger.Error("[DeleteBlob] Error: ", err)
+		return err
+	}
+	return nil
 }
