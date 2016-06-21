@@ -13,17 +13,18 @@ const (
 	artifactFileName = "artifact.tar"
 )
 
-func CreateImage(artifact io.Reader, baseImage string) error {
-	dockerfile := createDockerfile(baseImage)
-	buildContext, err := createBuildContext(artifact, dockerfile)
-	if err != nil {
-		return err
-	}
-	buildImage(buildContext)
-	return nil
+type DockerClient struct {
+	cli client.Client
 }
 
-func createClient() (*client.Client, error) {
+type ImageBuilder interface {
+	CreateImage(artifact io.Reader, baseImage string)
+	BuildImage(buildContext io.Reader)
+	TagImage(imageId, tag string)
+	PushImage(tag string)
+}
+
+func CreateClient() (*client.Client, error) {
 	defaultHeaders := map[string]string{"User-Agent": "engine-api-cli-1.0"}
 	cli, err := client.NewClient("unix:///var/run/docker.sock", "v1.23", nil, defaultHeaders)
 	if err != nil {
@@ -33,7 +34,7 @@ func createClient() (*client.Client, error) {
 	return cli, nil
 }
 
-func createDockerfile(baseImage string) io.Reader {
+func CreateDockerfile(baseImage string) io.Reader {
 	buf := new(bytes.Buffer)
 	buf.WriteString("FROM ")
 	buf.WriteString(baseImage)
@@ -43,7 +44,7 @@ func createDockerfile(baseImage string) io.Reader {
 	return buf
 }
 
-func createBuildContext(applicationArtifact io.Reader, dockerfile io.Reader) (io.Reader, error) {
+func CreateBuildContext(applicationArtifact io.Reader, dockerfile io.Reader) (io.Reader, error) {
 	buf := new(bytes.Buffer)
 	tw := tar.NewWriter(buf)
 	hdr := &tar.Header{
@@ -81,22 +82,22 @@ func createBuildContext(applicationArtifact io.Reader, dockerfile io.Reader) (io
 	return buf, nil
 }
 
-func buildImage(buildContext io.Reader) error {
-	dockerClient, err := createClient()
+func (d *DockerClient) CreateImage(artifact io.Reader, baseImage string) error {
+	dockerfile := CreateDockerfile(baseImage)
+	buildContext, err := CreateBuildContext(artifact, dockerfile)
 	if err != nil {
 		return err
 	}
+	d.BuildImage(buildContext)
+	return nil
+}
+
+func (d *DockerClient) BuildImage(buildContext io.Reader) error {
 	buildOptions := types.ImageBuildOptions{}
-	_, err = dockerClient.ImageBuild(context.Background(), buildContext, buildOptions)
+	_, err := d.cli.ImageBuild(context.Background(), buildContext, buildOptions)
 	if err != nil {
 		logger.Error("Couldn't build docker image", err)
 		return err
 	}
 	return nil
-}
-
-func StreamToByte(stream io.Reader) []byte {
-	buf := new(bytes.Buffer)
-	buf.ReadFrom(stream)
-	return buf.Bytes()
 }

@@ -17,6 +17,8 @@
 package main
 
 import (
+	"bytes"
+	"io"
 	"net/http"
 	"os"
 	"time"
@@ -60,6 +62,12 @@ func NewCatalogConnector() *Connector {
 		Server: GetCatalogAddress(),
 		Client: clientCreator,
 	}
+}
+
+func StreamToByte(stream io.Reader) []byte {
+	buf := new(bytes.Buffer)
+	buf.ReadFrom(stream)
+	return buf.Bytes()
 }
 
 func NewBlobStoreConnector() *Connector {
