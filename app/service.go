@@ -18,7 +18,9 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"github.com/trustedanalytics/tap-go-common/http"
+	"strconv"
 )
 
 type CatalogApi interface {
@@ -37,14 +39,16 @@ func (c *Connector) GetApplicationDetails(applicationId string) (*ApplicationGet
 	status, body, err := http.RestGET(c.Server+"/applications/"+applicationId, nil, c.Client)
 
 	if status != 200 || err != nil {
-		logger.Error("[GetApplicationDetails] Status: ", status)
-		logger.Error("[GetApplicationDetails] Error: ", err)
+		if err == nil {
+			err = errors.New("Invalid status: " + strconv.Itoa(status))
+		}
+		logger.Error("Error: ", err)
 		return &ApplicationGetResponse{}, err
 	}
 
 	err = json.Unmarshal(body, &response)
 	if err != nil {
-		logger.Error("[GetApplicationDetails] Error: ", err)
+		logger.Error("Error: ", err)
 		return &ApplicationGetResponse{}, err
 	}
 	return &response, nil
@@ -52,27 +56,53 @@ func (c *Connector) GetApplicationDetails(applicationId string) (*ApplicationGet
 
 func (c *Connector) UpdateApplicationState(applicationId, state string) error {
 
-	req, err := json.Marshal(ApplicationStatePutRequest{applicationId, state})
+	req, err := json.Marshal(ApplicationStatePutRequest{state})
 	if err != nil {
 		return err
 	}
 
-	status, _, err := http.RestPUT(c.Server+"/applications/"+applicationId, string(req), nil, c.Client)
+	status, _, err := http.RestPATCH(c.Server+"/applications/"+applicationId, string(req), nil, c.Client)
 
 	if status != 200 || err != nil {
-		logger.Error("[UpdateApplicationState] Status: ", status)
-		logger.Error("[UpdateApplicationState] Error: ", err)
+		if err == nil {
+			err = errors.New("Invalid status: " + strconv.Itoa(status))
+		}
+		logger.Error("Error: ", err)
 		return err
 	}
 	return nil
 }
 
-func (c *Connector) GetBlob(applicationId string) ([]byte, error) {
-	status, res, err := http.RestGET(c.Server+"/blobs/"+applicationId, nil, c.Client)
+func (c *Connector) GetApplicationBlob(applicationId string) ([]byte, error) {
+	blobId := "app_" + applicationId
+	return c.GetBlob(blobId)
+}
+
+func (c *Connector) GetBlob(blobId string) ([]byte, error) {
+	status, res, err := http.RestGET(c.Server+"/blobs/"+blobId, nil, c.Client)
 	if status != 200 || err != nil {
-		logger.Error("[GetBlob] Status: ", status)
-		logger.Error("[GetBlob] Error: ", err)
+		if err == nil {
+			err = errors.New("Invalid status: " + strconv.Itoa(status))
+		}
+		logger.Error("Error: ", err)
 		return nil, err
 	}
 	return res, err
+}
+
+func (c *Connector) DeleteApplicationBlob(applicationId string) error {
+	blobId := "app_" + applicationId
+	return c.DeleteBlob(blobId)
+}
+
+func (c *Connector) DeleteBlob(blobId string) error {
+	status, _, err := http.RestDELETE(c.Server+"/blobs/"+blobId, "", nil, c.Client)
+	if status != 204 || err != nil {
+		if err == nil {
+			err = errors.New("Invalid status: " + strconv.Itoa(status))
+		}
+		logger.Error("Error: ", err)
+		return err
+	}
+	return nil
 }

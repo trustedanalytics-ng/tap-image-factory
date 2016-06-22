@@ -18,7 +18,7 @@ package main
 
 import (
 	"github.com/jarcoal/httpmock"
-	"github.com/smartystreets/goconvey/convey"
+	. "github.com/smartystreets/goconvey/convey"
 	"os"
 	"testing"
 )
@@ -27,27 +27,109 @@ const (
 	catalogAddress   = "https://test-catalog.org"
 	applicationId    = "25de06b4-ac21-4454-bb82-e72bc05f3a5c"
 	applicationsPath = "/applications/"
+	blobStoreAddress = "https://test-blobstore.org"
+	blobId           = "app_" + applicationId
+	blobsPath        = "/blobs/"
+	blob             = "abcdefg"
 )
 
 func TestGetApplicationDetails(t *testing.T) {
-
 	os.Setenv("CATALOG_ADDRESS", catalogAddress)
-	c := NewCatalogConnector()
 	httpmock.Activate()
+	c := NewCatalogConnector()
+	c.Client.Transport = httpmock.DefaultTransport
 	defer httpmock.DeactivateAndReset()
 
-	print(GetCatalogAddress() + applicationsPath + applicationId)
-	httpmock.RegisterResponder("GET", GetCatalogAddress()+applicationsPath+applicationId,
-		httpmock.NewStringResponder(200, `{"applicationId":"`+applicationId+`"}`))
-	c.Client.Transport = httpmock.DefaultTransport
-	res, err := c.GetApplicationDetails(applicationId)
-	convey.ShouldBeNil(err)
-	convey.ShouldEqual(res.ApplicationId, applicationId)
+	Convey("Test GetApplicationDetails", t, func() {
+		Convey("Should return proper response", func() {
+			httpmock.RegisterResponder("GET", GetCatalogAddress()+applicationsPath+applicationId,
+				httpmock.NewStringResponder(200, `{"id":"`+applicationId+`"}`))
+			res, err := c.GetApplicationDetails(applicationId)
+			So(err, ShouldBeNil)
+			So(res.ApplicationId, ShouldEqual, applicationId)
+		})
+
+		Convey("Should return not found", func() {
+			httpmock.RegisterResponder("GET", GetCatalogAddress()+applicationsPath+applicationId,
+				httpmock.NewStringResponder(404, ``))
+			res, err := c.GetApplicationDetails(applicationId)
+			So(err.Error(), ShouldEqual, "Invalid status: 404")
+			So(res.ApplicationId, ShouldBeEmpty)
+		})
+	})
 }
 
 func TestUpdateApplicationState(t *testing.T) {
+	os.Setenv("CATALOG_ADDRESS", catalogAddress)
+	httpmock.Activate()
+	c := NewCatalogConnector()
+	c.Client.Transport = httpmock.DefaultTransport
+	defer httpmock.DeactivateAndReset()
 
+	Convey("Test UpdateApplicationState", t, func() {
+		Convey("Should return proper response", func() {
+			httpmock.RegisterResponder("PATCH", GetCatalogAddress()+applicationsPath+applicationId,
+				httpmock.NewStringResponder(200, ``))
+			err := c.UpdateApplicationState(applicationId, "created")
+			So(err, ShouldBeNil)
+
+		})
+
+		Convey("Should return not found", func() {
+			httpmock.RegisterResponder("PATCH", GetCatalogAddress()+applicationsPath+applicationId,
+				httpmock.NewStringResponder(404, ``))
+			err := c.UpdateApplicationState(applicationId, "created")
+			So(err.Error(), ShouldEqual, "Invalid status: 404")
+		})
+	})
 }
 
 func TestGetBlob(t *testing.T) {
+	os.Setenv("BLOB_STORE_ADDRESS", blobStoreAddress)
+	httpmock.Activate()
+	c := NewBlobStoreConnector()
+	c.Client.Transport = httpmock.DefaultTransport
+	defer httpmock.DeactivateAndReset()
+
+	Convey("Test GetBlob", t, func() {
+		Convey("Should return proper response", func() {
+			httpmock.RegisterResponder("GET", GetBlobStoreAddress()+blobsPath+blobId,
+				httpmock.NewStringResponder(200, blob))
+			res, err := c.GetApplicationBlob(applicationId)
+			So(err, ShouldBeNil)
+			So(string(res), ShouldEqual, blob)
+		})
+
+		Convey("Should return not found", func() {
+			httpmock.RegisterResponder("GET", GetBlobStoreAddress()+blobsPath+blobId,
+				httpmock.NewStringResponder(404, ""))
+			res, err := c.GetApplicationBlob(applicationId)
+			So(err.Error(), ShouldEqual, "Invalid status: 404")
+			So(string(res), ShouldEqual, "")
+		})
+	})
+}
+
+func TestDeleteBlob(t *testing.T) {
+	os.Setenv("BLOB_STORE_ADDRESS", blobStoreAddress)
+	httpmock.Activate()
+	c := NewBlobStoreConnector()
+	c.Client.Transport = httpmock.DefaultTransport
+	defer httpmock.DeactivateAndReset()
+
+	Convey("Test DeleteBlob", t, func() {
+		Convey("Should return proper response", func() {
+			httpmock.RegisterResponder("DELETE", GetBlobStoreAddress()+blobsPath+blobId,
+				httpmock.NewStringResponder(204, ""))
+			err := c.DeleteApplicationBlob(applicationId)
+			So(err, ShouldBeNil)
+		})
+
+		Convey("Should return not found", func() {
+			httpmock.RegisterResponder("DELETE", GetBlobStoreAddress()+blobsPath+blobId,
+				httpmock.NewStringResponder(404, ""))
+			err := c.DeleteApplicationBlob(applicationId)
+			So(err.Error(), ShouldEqual, "Invalid status: 404")
+		})
+	})
 }

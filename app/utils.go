@@ -32,8 +32,7 @@ type ApplicationGetResponse struct {
 }
 
 type ApplicationStatePutRequest struct {
-	ApplicationId string `json:"id"`
-	State         string `json:"state"`
+	State string `json:"state"`
 }
 
 type BuildImagePostRequest struct {
