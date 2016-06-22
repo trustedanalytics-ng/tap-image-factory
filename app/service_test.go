@@ -53,7 +53,7 @@ func TestGetApplicationDetails(t *testing.T) {
 			httpmock.RegisterResponder("GET", GetCatalogAddress()+applicationsPath+applicationId,
 				httpmock.NewStringResponder(404, ``))
 			res, err := c.GetApplicationDetails(applicationId)
-			So(err, ShouldNotBeNil)
+			So(err.Error(), ShouldEqual, "Invalid status: 404")
 			So(res.ApplicationId, ShouldBeEmpty)
 		})
 	})
@@ -79,7 +79,7 @@ func TestUpdateApplicationState(t *testing.T) {
 			httpmock.RegisterResponder("PATCH", GetCatalogAddress()+applicationsPath+applicationId,
 				httpmock.NewStringResponder(404, ``))
 			err := c.UpdateApplicationState(applicationId, "created")
-			So(err, ShouldEqual, "Invalid status: 404")
+			So(err.Error(), ShouldEqual, "Invalid status: 404")
 		})
 	})
 }
@@ -104,7 +104,7 @@ func TestGetBlob(t *testing.T) {
 			httpmock.RegisterResponder("GET", GetBlobStoreAddress()+blobsPath+blobId,
 				httpmock.NewStringResponder(404, ""))
 			res, err := c.GetApplicationBlob(applicationId)
-			So(string(err), ShouldEqual, "Invalid status: 404")
+			So(err.Error(), ShouldEqual, "Invalid status: 404")
 			So(string(res), ShouldEqual, "")
 		})
 	})
@@ -129,7 +129,7 @@ func TestDeleteBlob(t *testing.T) {
 			httpmock.RegisterResponder("DELETE", GetBlobStoreAddress()+blobsPath+blobId,
 				httpmock.NewStringResponder(404, ""))
 			err := c.DeleteApplicationBlob(applicationId)
-			So(err, ShouldEqual, "Invalid status: 404")
+			So(err.Error(), ShouldEqual, "Invalid status: 404")
 		})
 	})
 }

@@ -40,15 +40,15 @@ func (c *Connector) GetApplicationDetails(applicationId string) (*ApplicationGet
 
 	if status != 200 || err != nil {
 		if err == nil {
-			err = errors.New("Invalid status: " + string(status))
+			err = errors.New("Invalid status: " + strconv.Itoa(status))
 		}
-		logger.Error("[GetApplicationDetails] Error: ", err)
+		logger.Error("Error: ", err)
 		return &ApplicationGetResponse{}, err
 	}
 
 	err = json.Unmarshal(body, &response)
 	if err != nil {
-		logger.Error("[GetApplicationDetails] Error: ", err)
+		logger.Error("Error: ", err)
 		return &ApplicationGetResponse{}, err
 	}
 	return &response, nil
@@ -67,7 +67,7 @@ func (c *Connector) UpdateApplicationState(applicationId, state string) error {
 		if err == nil {
 			err = errors.New("Invalid status: " + strconv.Itoa(status))
 		}
-		logger.Error("[UpdateApplicationState] Error: ", err)
+		logger.Error("Error: ", err)
 		return err
 	}
 	return nil
@@ -84,7 +84,7 @@ func (c *Connector) GetBlob(blobId string) ([]byte, error) {
 		if err == nil {
 			err = errors.New("Invalid status: " + strconv.Itoa(status))
 		}
-		logger.Error("[GetBlob] Error: ", err)
+		logger.Error("Error: ", err)
 		return nil, err
 	}
 	return res, err
@@ -101,7 +101,7 @@ func (c *Connector) DeleteBlob(blobId string) error {
 		if err == nil {
 			err = errors.New("Invalid status: " + strconv.Itoa(status))
 		}
-		logger.Error("[DeleteBlob] Error: ", err)
+		logger.Error("Error: ", err)
 		return err
 	}
 	return nil
