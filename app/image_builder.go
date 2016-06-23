@@ -14,7 +14,7 @@ const (
 )
 
 type DockerClient struct {
-	cli client.Client
+	cli *client.Client
 }
 
 type ImageBuilder interface {
@@ -26,7 +26,7 @@ type ImageBuilder interface {
 
 func CreateClient() (*client.Client, error) {
 	defaultHeaders := map[string]string{"User-Agent": "engine-api-cli-1.0"}
-	cli, err := client.NewClient("unix:///var/run/docker.sock", "v1.23", nil, defaultHeaders)
+	cli, err := client.NewClient(GetDockerHostAddress(), GetDocerApiVersion(), nil, defaultHeaders)
 	if err != nil {
 		logger.Error("Couldn't create docker client", err)
 		return nil, err
@@ -45,34 +45,37 @@ func CreateDockerfile(baseImage string) io.Reader {
 }
 
 func CreateBuildContext(applicationArtifact io.Reader, dockerfile io.Reader) (io.Reader, error) {
+	applicationArtifactBytes := StreamToByte(applicationArtifact)
+	dockerfileBytes := StreamToByte(dockerfile)
+
 	buf := new(bytes.Buffer)
 	tw := tar.NewWriter(buf)
 	hdr := &tar.Header{
 		Name: artifactFileName,
-		Mode: 0777,
-		Size: int64(len(StreamToByte(applicationArtifact))),
+		Mode: 0700,
+		Size: int64(len(applicationArtifactBytes)),
 	}
 	err := tw.WriteHeader(hdr)
 	if err != nil {
 		logger.Error("Couldn't write tar header for file: ", hdr.Name, "Error:", err)
 		return nil, err
 	}
-	_, err = tw.Write(StreamToByte(applicationArtifact))
+	_, err = tw.Write(applicationArtifactBytes)
 	if err != nil {
 		logger.Error("Couldn't write tar body for file: ", hdr.Name, "Error:", err)
 		return nil, err
 	}
 	hdr = &tar.Header{
 		Name: "Dockerfile",
-		Mode: 0777,
-		Size: int64(len(StreamToByte(dockerfile))),
+		Mode: 0700,
+		Size: int64(len(dockerfileBytes)),
 	}
 	err = tw.WriteHeader(hdr)
 	if err != nil {
 		logger.Error("Couldn't write tar header for file: ", hdr.Name, "Error:", err)
 		return nil, err
 	}
-	_, err = tw.Write(StreamToByte(dockerfile))
+	_, err = tw.Write(dockerfileBytes)
 	if err != nil {
 		logger.Error("Couldn't write tar body for file: ", hdr.Name, "Error:", err)
 		return nil, err
