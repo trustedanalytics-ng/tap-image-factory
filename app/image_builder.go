@@ -103,3 +103,11 @@ func (d *DockerClient) BuildImage(buildContext io.Reader) error {
 	}
 	return nil
 }
+
+func (d *DockerClient) TagImage(imageId, tag string) error {
+	return d.cli.ImageTag(context.Background(), imageId, tag)
+}
+
+func (d *DockerClient) PushImage(tag string) (io.Reader, error) {
+	return d.cli.ImagePush(context.Background(), tag, types.ImagePushOptions{})
+}
