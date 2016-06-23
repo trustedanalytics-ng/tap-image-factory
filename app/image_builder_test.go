@@ -28,7 +28,8 @@ func TestCreateDockerfile(t *testing.T) {
 			dockerfileStringArray := strings.Split(StreamToString(dockerfile), "\n")
 
 			So(dockerfileStringArray[0], ShouldEqual, "FROM "+testBaseImage)
-			So(dockerfileStringArray[len(dockerfileStringArray)-1], ShouldEqual, "CMD [~/run.sh]")
+			So(dockerfileStringArray[1], ShouldEqual, "ADD "+artifactFileName+" /root")
+			So(dockerfileStringArray[2], ShouldEqual, "CMD [/root/run.sh]")
 		})
 	})
 }

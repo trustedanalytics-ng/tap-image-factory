@@ -79,15 +79,22 @@ func NewCatalogConnector() *Connector {
 
 func StreamToByte(stream io.Reader) []byte {
 	buf := new(bytes.Buffer)
-	buf.ReadFrom(stream)
+	_, err := buf.ReadFrom(stream)
+	if err != nil {
+		logger.Error(err)
+	}
 	return buf.Bytes()
 }
 
 func StreamToString(stream io.Reader) string {
 	buf := new(bytes.Buffer)
-	buf.ReadFrom(stream)
+	_, err := buf.ReadFrom(stream)
+	if err != nil {
+		logger.Error(err)
+	}
 	return buf.String()
 }
+
 func NewBlobStoreConnector() *Connector {
 	transport := &http.Transport{}
 	clientCreator := &http.Client{Transport: transport, Timeout: time.Duration(30 * time.Minute)}
