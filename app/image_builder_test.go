@@ -3,10 +3,10 @@ package main
 import (
 	"testing"
 
+	"archive/tar"
+	"bytes"
 	. "github.com/smartystreets/goconvey/convey"
 	"strings"
-	"bytes"
-	"archive/tar"
 )
 
 const (
@@ -15,10 +15,10 @@ const (
 
 var (
 	testApplicationArtifactContent = "Test artifact file content"
-	testDockerfileContent = "FROM " + testBaseImage + "\n" + "RUN mkdir /test_dir\n" + "CMD [~/run.sh]"
+	testDockerfileContent          = "FROM " + testBaseImage + "\n" + "RUN mkdir /test_dir\n" + "CMD [~/run.sh]"
 
 	testApplicationArtifact = bytes.NewBufferString(testApplicationArtifactContent)
-	testDockerfile = bytes.NewBufferString(testDockerfileContent)
+	testDockerfile          = bytes.NewBufferString(testDockerfileContent)
 )
 
 func TestCreateDockerfile(t *testing.T) {
@@ -27,7 +27,7 @@ func TestCreateDockerfile(t *testing.T) {
 			dockerfile := CreateDockerfile(testBaseImage)
 			dockerfileStringArray := strings.Split(StreamToString(dockerfile), "\n")
 
-			So(dockerfileStringArray[0], ShouldEqual, "FROM " + testBaseImage)
+			So(dockerfileStringArray[0], ShouldEqual, "FROM "+testBaseImage)
 			So(dockerfileStringArray[len(dockerfileStringArray)-1], ShouldEqual, "CMD [~/run.sh]")
 		})
 	})
