@@ -18,6 +18,7 @@ package main
 
 import (
 	"bytes"
+	"errors"
 	"io"
 	"net/http"
 	"os"
@@ -77,22 +78,22 @@ func NewCatalogConnector() *Connector {
 	}
 }
 
-func StreamToByte(stream io.Reader) []byte {
+func StreamToByte(stream io.Reader) ([]byte, error) {
 	buf := new(bytes.Buffer)
 	_, err := buf.ReadFrom(stream)
 	if err != nil {
-		logger.Error(err)
+		return nil, errors.New("Could not read stream into byte array: " + err.Error())
 	}
-	return buf.Bytes()
+	return buf.Bytes(), nil
 }
 
-func StreamToString(stream io.Reader) string {
+func StreamToString(stream io.Reader) (string, error) {
 	buf := new(bytes.Buffer)
 	_, err := buf.ReadFrom(stream)
 	if err != nil {
-		logger.Error(err)
+		return "", errors.New("Could not read stream into string: " + err.Error())
 	}
-	return buf.String()
+	return buf.String(), nil
 }
 
 func NewBlobStoreConnector() *Connector {

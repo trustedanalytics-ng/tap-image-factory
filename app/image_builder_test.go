@@ -25,7 +25,8 @@ func TestCreateDockerfile(t *testing.T) {
 	Convey("Test CreateDockerfile", t, func() {
 		Convey("Dockerfile should contains proper lines", func() {
 			dockerfile := CreateDockerfile(testBaseImage)
-			dockerfileStringArray := strings.Split(StreamToString(dockerfile), "\n")
+			dockerfileStr, _ := StreamToString(dockerfile)
+			dockerfileStringArray := strings.Split(dockerfileStr, "\n")
 
 			So(dockerfileStringArray[0], ShouldEqual, "FROM "+testBaseImage)
 			So(dockerfileStringArray[1], ShouldEqual, "ADD "+artifactFileName+" /root")
@@ -43,12 +44,14 @@ func TestCreateBuildContext(t *testing.T) {
 			hdr, err := tr.Next()
 
 			So(hdr.Name, ShouldEqual, artifactFileName)
-			So(StreamToString(tr), ShouldEqual, "Test artifact file content")
+			trStr, _ := StreamToString(tr)
+			So(trStr, ShouldEqual, "Test artifact file content")
 
 			hdr, err = tr.Next()
 
 			So(hdr.Name, ShouldEqual, "Dockerfile")
-			So(StreamToString(tr), ShouldEqual, testDockerfileContent)
+			trStr, _ = StreamToString(tr)
+			So(trStr, ShouldEqual, testDockerfileContent)
 		})
 	})
 }
