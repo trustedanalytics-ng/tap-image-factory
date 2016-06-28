@@ -17,6 +17,9 @@
 package main
 
 import (
+	"bytes"
+	"errors"
+	"io"
 	"net/http"
 	"os"
 	"time"
@@ -52,6 +55,19 @@ type Connector struct {
 	Client *http.Client
 }
 
+func GetDocerApiVersion() string {
+	return os.Getenv("DOCKER_API_VERSION")
+}
+
+func GetDockerHostAddress() string {
+	return os.Getenv("DOCKER_HOST_ADDRESS")
+}
+
+type CatalogConnector struct {
+	Server string
+	Client *http.Client
+}
+
 func NewCatalogConnector() *Connector {
 	transport := &http.Transport{}
 	clientCreator := &http.Client{Transport: transport, Timeout: time.Duration(30 * time.Minute)}
@@ -60,6 +76,24 @@ func NewCatalogConnector() *Connector {
 		Server: GetCatalogAddress(),
 		Client: clientCreator,
 	}
+}
+
+func StreamToByte(stream io.Reader) ([]byte, error) {
+	buf := new(bytes.Buffer)
+	_, err := buf.ReadFrom(stream)
+	if err != nil {
+		return nil, errors.New("Could not read stream into byte array: " + err.Error())
+	}
+	return buf.Bytes(), nil
+}
+
+func StreamToString(stream io.Reader) (string, error) {
+	buf := new(bytes.Buffer)
+	_, err := buf.ReadFrom(stream)
+	if err != nil {
+		return "", errors.New("Could not read stream into string: " + err.Error())
+	}
+	return buf.String(), nil
 }
 
 func NewBlobStoreConnector() *Connector {
