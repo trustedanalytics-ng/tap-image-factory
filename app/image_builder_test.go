@@ -24,7 +24,7 @@ var (
 func TestCreateDockerfile(t *testing.T) {
 	Convey("Test CreateDockerfile", t, func() {
 		Convey("Dockerfile should contains proper lines", func() {
-			dockerfile := CreateDockerfile(testBaseImage)
+			dockerfile := createDockerfile(testBaseImage)
 			dockerfileStr, _ := StreamToString(dockerfile)
 			dockerfileStringArray := strings.Split(dockerfileStr, "\n")
 
@@ -38,7 +38,7 @@ func TestCreateDockerfile(t *testing.T) {
 func TestCreateBuildContext(t *testing.T) {
 	Convey("Test CreateBuildContext", t, func() {
 		Convey("Context should contains proper files", func() {
-			context, err := CreateBuildContext(testApplicationArtifact, testDockerfile)
+			context, err := createBuildContext(testApplicationArtifact, testDockerfile)
 			So(err, ShouldBeNil)
 			tr := tar.NewReader(context)
 			hdr, err := tr.Next()
