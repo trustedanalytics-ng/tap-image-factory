@@ -16,22 +16,43 @@
 package main
 
 import (
-	"testing"
-
+	"github.com/jarcoal/httpmock"
 	. "github.com/smartystreets/goconvey/convey"
+	"os"
+	"testing"
 )
 
 const URLbuildImage = "/api/v1/app"
 
 func TestBuildImage(t *testing.T) {
-	request := BuildImagePostRequest{ApplicationId: "test-app-id"}
+	os.Setenv("CATALOG_ADDRESS", catalogAddress)
+	httpmock.Activate()
+	c := NewCatalogConnector()
+	c.Client.Transport = httpmock.DefaultTransport
+	defer httpmock.DeactivateAndReset()
+
+	request := BuildImagePostRequest{ApplicationId: applicationId}
 	router := prepareMocksAndRouter(t)
-	router.Post(URLbuildImage, (*Context).BuildImage)
+	context := Context{}
+	catalogConnectorMock := CatalogConnectorMock{}
+	blobStoreConnectorMock := BlobStoreConnectorMock{}
+	dockerClientMock := DockerClientMock{}
+
+	context.BlobStoreConnector = &BlobStoreConnector{Api: &blobStoreConnectorMock}
+	context.CatalogConnector = &CatalogConnector{Api: &catalogConnectorMock}
+	context.DockerConnector = &DockerHandler{Api: &dockerClientMock}
+
+	router.Post(URLbuildImage, context.BuildImage)
 
 	Convey("Test BuildImage", t, func() {
-		Convey("Should returns proper response", func() {
+		Convey("Should return proper response: 201", func() {
 			response := sendRequest("POST", URLbuildImage, marshalToJson(t, request), router)
 			assertResponse(response, "", 201)
 		})
+		Convey("Should return invalid body response: 400", func() {
+			response := sendRequest("POST", URLbuildImage, []byte{}, router)
+			assertResponse(response, "", 400)
+		})
 	})
+
 }

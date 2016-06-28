@@ -24,18 +24,18 @@ import (
 )
 
 type CatalogApi interface {
-	UpdateApplicationState(applicationId string)
-	GetApplicationDetails(applicationId string)
+	UpdateApplicationState(applicationId, state string) error
+	GetApplicationDetails(applicationId string) (*ApplicationGetResponse, error)
 }
 
 type BlobStoreApi interface {
-	GetBlob(blobId string)
-	GetApplicationBlob(applicationId string)
-	DeleteBlob(blobId string)
-	DeleteApplicationBlob(applicationId string)
+	GetBlob(blobId string) ([]byte, error)
+	GetApplicationBlob(applicationId string) ([]byte, error)
+	DeleteBlob(blobId string) error
+	DeleteApplicationBlob(applicationId string) error
 }
 
-func (c *Connector) GetApplicationDetails(applicationId string) (*ApplicationGetResponse, error) {
+func (c *CatalogConnector) GetApplicationDetails(applicationId string) (*ApplicationGetResponse, error) {
 	response := ApplicationGetResponse{}
 
 	status, body, err := http.RestGET(c.Server+"/applications/"+applicationId, nil, c.Client)
@@ -56,7 +56,7 @@ func (c *Connector) GetApplicationDetails(applicationId string) (*ApplicationGet
 	return &response, nil
 }
 
-func (c *Connector) UpdateApplicationState(applicationId, state string) error {
+func (c *CatalogConnector) UpdateApplicationState(applicationId, state string) error {
 
 	req, err := json.Marshal(ApplicationStatePutRequest{state})
 	if err != nil {
@@ -75,12 +75,12 @@ func (c *Connector) UpdateApplicationState(applicationId, state string) error {
 	return nil
 }
 
-func (c *Connector) GetApplicationBlob(applicationId string) ([]byte, error) {
+func (c *BlobStoreConnector) GetApplicationBlob(applicationId string) ([]byte, error) {
 	blobId := "app_" + applicationId
 	return c.GetBlob(blobId)
 }
 
-func (c *Connector) GetBlob(blobId string) ([]byte, error) {
+func (c *BlobStoreConnector) GetBlob(blobId string) ([]byte, error) {
 	status, res, err := http.RestGET(c.Server+"/blobs/"+blobId, nil, c.Client)
 	if status != 200 || err != nil {
 		if err == nil {
@@ -92,12 +92,12 @@ func (c *Connector) GetBlob(blobId string) ([]byte, error) {
 	return res, err
 }
 
-func (c *Connector) DeleteApplicationBlob(applicationId string) error {
+func (c *BlobStoreConnector) DeleteApplicationBlob(applicationId string) error {
 	blobId := "app_" + applicationId
 	return c.DeleteBlob(blobId)
 }
 
-func (c *Connector) DeleteBlob(blobId string) error {
+func (c *BlobStoreConnector) DeleteBlob(blobId string) error {
 	status, res, err := http.RestDELETE(c.Server+"/blobs/"+blobId, "", nil, c.Client)
 	if status != 204 || err != nil {
 		if err == nil {

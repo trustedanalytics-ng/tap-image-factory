@@ -17,9 +17,72 @@
 package main
 
 import (
+	"bytes"
 	"github.com/gocraft/web"
+	"github.com/trustedanalytics/tap-go-common/util"
 )
 
+type Context struct {
+	BlobStoreConnector *BlobStoreConnector
+	CatalogConnector   *CatalogConnector
+	DockerConnector    *DockerHandler
+}
+
+func (c *Context) SetupContext(rw web.ResponseWriter, req *web.Request, next web.NextMiddlewareFunc) {
+	c.BlobStoreConnector = NewBlobStoreConnector()
+	c.CatalogConnector = NewCatalogConnector()
+	dockerClient, err := NewDockerClient()
+	if err != nil {
+		logger.Critical("Could not instantiate Docker Client!")
+	}
+	c.DockerConnector = &DockerHandler{dockerClient, &DockerClient{}}
+	next(rw, req)
+}
+
 func (c *Context) BuildImage(rw web.ResponseWriter, req *web.Request) {
+	req_json := BuildImagePostRequest{}
+	err := util.ReadJson(req, &req_json)
+	if err != nil {
+		logger.Error(err.Error())
+		rw.WriteHeader(400)
+		return
+	}
+	appDetails, err := c.CatalogConnector.Api.GetApplicationDetails(req_json.ApplicationId)
+	if err != nil {
+		logger.Error(err.Error())
+		rw.WriteHeader(500)
+		return
+	}
+	blobBytes, err := c.BlobStoreConnector.Api.GetApplicationBlob(appDetails.ApplicationId)
+	if err != nil {
+		logger.Error(err.Error())
+		rw.WriteHeader(500)
+		return
+	}
+	err = c.CatalogConnector.Api.UpdateApplicationState(appDetails.ApplicationId, "BUILDING")
+	if err != nil {
+		logger.Error(err.Error())
+		rw.WriteHeader(500)
+		return
+	}
+	err = c.DockerConnector.Api.CreateImage(bytes.NewReader(blobBytes), appDetails.BaseImage)
+	if err != nil {
+		logger.Error(err.Error())
+		rw.WriteHeader(500)
+		return
+	}
+	err = c.CatalogConnector.Api.UpdateApplicationState(appDetails.ApplicationId, "READY")
+	if err != nil {
+		logger.Error(err.Error())
+		rw.WriteHeader(500)
+		return
+	}
+	err = c.BlobStoreConnector.Api.DeleteApplicationBlob(appDetails.ApplicationId)
+	if err != nil {
+		logger.Error(err.Error())
+		rw.Write([]byte(err.Error()))
+		rw.WriteHeader(500)
+		return
+	}
 	rw.WriteHeader(201)
 }

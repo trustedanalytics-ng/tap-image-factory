@@ -14,20 +14,25 @@ const (
 	artifactFileName = "artifact.tar"
 )
 
+type DockerHandler struct {
+	Client *DockerClient
+	Api    ImageBuilder
+}
+
 type DockerClient struct {
 	cli *client.Client
 }
 
 type ImageBuilder interface {
-	CreateImage(artifact io.Reader, baseImage string)
-	buildImage(buildContext io.Reader)
-	TagImage(imageId, tag string)
-	PushImage(tag string)
+	CreateImage(artifact io.Reader, baseImage string) error
+	buildImage(buildContext io.Reader) error
+	TagImage(imageId, tag string) error
+	PushImage(tag string) error
 }
 
 func NewDockerClient() (*DockerClient, error) {
 	defaultHeaders := map[string]string{"User-Agent": "engine-api-cli-1.0"}
-	cli, err := client.NewClient(GetDockerHostAddress(), GetDocerApiVersion(), nil, defaultHeaders)
+	cli, err := client.NewClient(GetDockerHostAddress(), GetDockerApiVersion(), nil, defaultHeaders)
 	if err != nil {
 		return nil, errors.New("Couldn't create docker client: " + err.Error())
 	}
@@ -60,8 +65,9 @@ func (d *DockerClient) TagImage(imageId, tag string) error {
 	return d.cli.ImageTag(context.Background(), imageId, tag)
 }
 
-func (d *DockerClient) PushImage(tag string) (io.Reader, error) {
-	return d.cli.ImagePush(context.Background(), tag, types.ImagePushOptions{})
+func (d *DockerClient) PushImage(tag string) error {
+	_, err := d.cli.ImagePush(context.Background(), tag, types.ImagePushOptions{})
+	return err
 }
 
 func createDockerfile(baseImage string) io.Reader {
