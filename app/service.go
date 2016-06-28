@@ -29,8 +29,10 @@ type CatalogApi interface {
 }
 
 type BlobStoreApi interface {
-	GetBlob(applicationId string)
-	DeleteBlob(applicationId string)
+	GetBlob(blobId string)
+	GetApplicationBlob(applicationId string)
+	DeleteBlob(blobId string)
+	DeleteApplicationBlob(applicationId string)
 }
 
 func (c *Connector) GetApplicationDetails(applicationId string) (*ApplicationGetResponse, error) {
