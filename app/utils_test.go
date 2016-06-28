@@ -27,6 +27,17 @@ import (
 	"strings"
 )
 
+const (
+	catalogAddress   = "https://test-catalog.org"
+	applicationId    = "25de06b4-ac21-4454-bb82-e72bc05f3a5c"
+	applicationsPath = "/applications/"
+	blobStoreAddress = "https://test-blobstore.org"
+	blobId           = "app_" + applicationId
+	blobsPath        = "/blobs/"
+	blob             = "abcdefg"
+	baseImage        = "test/testimage"
+)
+
 func prepareMocksAndRouter(t *testing.T) (router *web.Router) {
 	router = web.New(Context{})
 	return router

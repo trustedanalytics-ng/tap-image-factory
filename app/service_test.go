@@ -23,16 +23,6 @@ import (
 	"testing"
 )
 
-const (
-	catalogAddress   = "https://test-catalog.org"
-	applicationId    = "25de06b4-ac21-4454-bb82-e72bc05f3a5c"
-	applicationsPath = "/applications/"
-	blobStoreAddress = "https://test-blobstore.org"
-	blobId           = "app_" + applicationId
-	blobsPath        = "/blobs/"
-	blob             = "abcdefg"
-)
-
 func TestGetApplicationDetails(t *testing.T) {
 	os.Setenv("CATALOG_ADDRESS", catalogAddress)
 	httpmock.Activate()
