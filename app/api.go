@@ -65,7 +65,14 @@ func (c *Context) BuildImage(rw web.ResponseWriter, req *web.Request) {
 		rw.WriteHeader(500)
 		return
 	}
-	err = c.DockerConnector.Api.CreateImage(bytes.NewReader(blobBytes), appDetails.BaseImage)
+	tag := GetDockerHostAddress() + "/" + appDetails.ApplicationId
+	err = c.DockerConnector.Api.CreateImage(bytes.NewReader(blobBytes), appDetails.BaseImage, tag)
+	if err != nil {
+		logger.Error(err.Error())
+		rw.WriteHeader(500)
+		return
+	}
+	err = c.DockerConnector.Api.PushImage(tag)
 	if err != nil {
 		logger.Error(err.Error())
 		rw.WriteHeader(500)

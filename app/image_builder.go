@@ -24,8 +24,8 @@ type DockerClient struct {
 }
 
 type ImageBuilder interface {
-	CreateImage(artifact io.Reader, baseImage string) error
-	buildImage(buildContext io.Reader) error
+	CreateImage(artifact io.Reader, baseImage, applicationId string) error
+	buildImage(buildContext io.Reader, applicationId string) error
 	TagImage(imageId, tag string) error
 	PushImage(tag string) error
 }
@@ -40,18 +40,18 @@ func NewDockerClient() (*DockerClient, error) {
 	return &dockerClient, nil
 }
 
-func (d *DockerClient) CreateImage(artifact io.Reader, baseImage string) error {
+func (d *DockerClient) CreateImage(artifact io.Reader, baseImage, tag string) error {
 	dockerfile := createDockerfile(baseImage)
 	buildContext, err := createBuildContext(artifact, dockerfile)
 	if err != nil {
 		return err
 	}
-	d.buildImage(buildContext)
+	d.buildImage(buildContext, tag)
 	return nil
 }
 
-func (d *DockerClient) buildImage(buildContext io.Reader) error {
-	buildOptions := types.ImageBuildOptions{}
+func (d *DockerClient) buildImage(buildContext io.Reader, tag string) error {
+	buildOptions := types.ImageBuildOptions{Tags: []string{tag}}
 	response, err := d.cli.ImageBuild(context.Background(), buildContext, buildOptions)
 	responseStr, _ := StreamToString(response.Body)
 	logger.Info(responseStr)

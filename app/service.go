@@ -84,7 +84,7 @@ func (c *BlobStoreConnector) GetBlob(blobId string) ([]byte, error) {
 	status, res, err := http.RestGET(c.Server+"/blobs/"+blobId, nil, c.Client)
 	if status != 200 || err != nil {
 		if err == nil {
-			err = errors.New("Invalid status: "+strconv.Itoa(status)+" Response: "+string(res))
+			err = errors.New("Invalid status: " + strconv.Itoa(status) + " Response: " + string(res))
 		}
 		logger.Error(err)
 		return nil, err
@@ -101,7 +101,7 @@ func (c *BlobStoreConnector) DeleteBlob(blobId string) error {
 	status, res, err := http.RestDELETE(c.Server+"/blobs/"+blobId, "", nil, c.Client)
 	if status != 204 || err != nil {
 		if err == nil {
-			err = errors.New("Invalid status: "+strconv.Itoa(status)+" Response: "+string(res))
+			err = errors.New("Invalid status: " + strconv.Itoa(status) + " Response: " + string(res))
 		}
 		logger.Error(err)
 		return err
