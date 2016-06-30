@@ -23,21 +23,21 @@ import (
 	"os"
 )
 
-type ApplicationGetResponse struct {
-	ApplicationId string `json:"id"`
-	TemplateId    string `json:"templateId"`
-	BaseImage     string `json:"image"`
-	Replication   string `json:"replication"`
-	Type          string `json:"type"`
-	State         string `json:"state"`
+type ImageGetResponse struct {
+	ImageId     string `json:"id"`
+	TemplateId  string `json:"templateId"`
+	BaseImage   string `json:"image"`
+	Replication string `json:"replication"`
+	Type        string `json:"type"`
+	State       string `json:"state"`
 }
 
-type ApplicationStatePutRequest struct {
+type ImageStatePutRequest struct {
 	State string `json:"state"`
 }
 
 type BuildImagePostRequest struct {
-	ApplicationId string `json:"id"`
+	ImageId string `json:"id"`
 }
 
 func GetCatalogAddress() string {

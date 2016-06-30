@@ -26,15 +26,15 @@ import (
 )
 
 type CatalogApi interface {
-	UpdateApplicationState(applicationId, state string) error
-	GetApplicationDetails(applicationId string) (*ApplicationGetResponse, error)
+	UpdateImageState(imageId, state string) error
+	GetImageDetails(imageId string) (*ImageGetResponse, error)
 }
 
 type BlobStoreApi interface {
 	GetBlob(blobId string) ([]byte, error)
-	GetApplicationBlob(applicationId string) ([]byte, error)
+	GetImageBlob(imageId string) ([]byte, error)
 	DeleteBlob(blobId string) error
-	DeleteApplicationBlob(applicationId string) error
+	DeleteImageBlob(imageId string) error
 }
 
 type Connector struct {
@@ -62,35 +62,35 @@ func NewBlobStoreConnector() *Connector {
 	}
 }
 
-func (c *Connector) GetApplicationDetails(applicationId string) (*ApplicationGetResponse, error) {
-	response := ApplicationGetResponse{}
+func (c *Connector) GetImageDetails(imageId string) (*ImageGetResponse, error) {
+	response := ImageGetResponse{}
 
-	status, body, err := RestGET(c.Server+"/applications/"+applicationId, nil, c.Client)
+	status, body, err := RestGET(c.Server+"/images/"+imageId, nil, c.Client)
 
 	if status != 200 || err != nil {
 		if err == nil {
 			err = errors.New("Invalid status: " + strconv.Itoa(status))
 		}
 		logger.Error(err)
-		return &ApplicationGetResponse{}, err
+		return &ImageGetResponse{}, err
 	}
 
 	err = json.Unmarshal(body, &response)
 	if err != nil {
 		logger.Error(err)
-		return &ApplicationGetResponse{}, err
+		return &ImageGetResponse{}, err
 	}
 	return &response, nil
 }
 
-func (c *Connector) UpdateApplicationState(applicationId, state string) error {
+func (c *Connector) UpdateImageState(imageId, state string) error {
 
-	req, err := json.Marshal(ApplicationStatePutRequest{state})
+	req, err := json.Marshal(ImageStatePutRequest{state})
 	if err != nil {
 		return err
 	}
 
-	status, _, err := RestPATCH(c.Server+"/applications/"+applicationId, string(req), nil, c.Client)
+	status, _, err := RestPATCH(c.Server+"/images/"+imageId, string(req), nil, c.Client)
 
 	if status != 200 || err != nil {
 		if err == nil {
@@ -102,8 +102,8 @@ func (c *Connector) UpdateApplicationState(applicationId, state string) error {
 	return nil
 }
 
-func (c *Connector) GetApplicationBlob(applicationId string) ([]byte, error) {
-	blobId := "app_" + applicationId
+func (c *Connector) GetImageBlob(imageId string) ([]byte, error) {
+	blobId := "img_" + imageId
 	return c.GetBlob(blobId)
 }
 
@@ -119,8 +119,8 @@ func (c *Connector) GetBlob(blobId string) ([]byte, error) {
 	return res, err
 }
 
-func (c *Connector) DeleteApplicationBlob(applicationId string) error {
-	blobId := "app_" + applicationId
+func (c *Connector) DeleteImageBlob(imageId string) error {
+	blobId := "img_" + imageId
 	return c.DeleteBlob(blobId)
 }
 

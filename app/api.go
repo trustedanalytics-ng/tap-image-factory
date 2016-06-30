@@ -47,26 +47,26 @@ func (c *Context) BuildImage(rw web.ResponseWriter, req *web.Request) {
 		rw.WriteHeader(400)
 		return
 	}
-	appDetails, err := c.CatalogConnector.GetApplicationDetails(req_json.ApplicationId)
+	imgDetails, err := c.CatalogConnector.GetImageDetails(req_json.ImageId)
 	if err != nil {
 		logger.Error(err.Error())
 		rw.WriteHeader(500)
 		return
 	}
-	blobBytes, err := c.BlobStoreConnector.GetApplicationBlob(appDetails.ApplicationId)
+	blobBytes, err := c.BlobStoreConnector.GetImageBlob(imgDetails.ImageId)
 	if err != nil {
 		logger.Error(err.Error())
 		rw.WriteHeader(500)
 		return
 	}
-	err = c.CatalogConnector.UpdateApplicationState(appDetails.ApplicationId, "BUILDING")
+	err = c.CatalogConnector.UpdateImageState(imgDetails.ImageId, "BUILDING")
 	if err != nil {
 		logger.Error(err.Error())
 		rw.WriteHeader(500)
 		return
 	}
-	tag := GetDockerHostAddress() + "/" + appDetails.ApplicationId
-	err = c.DockerConnector.CreateImage(bytes.NewReader(blobBytes), appDetails.BaseImage, tag)
+	tag := GetDockerHostAddress() + "/" + imgDetails.ImageId
+	err = c.DockerConnector.CreateImage(bytes.NewReader(blobBytes), imgDetails.BaseImage, tag)
 	if err != nil {
 		logger.Error(err.Error())
 		rw.WriteHeader(500)
@@ -78,13 +78,13 @@ func (c *Context) BuildImage(rw web.ResponseWriter, req *web.Request) {
 		rw.WriteHeader(500)
 		return
 	}
-	err = c.CatalogConnector.UpdateApplicationState(appDetails.ApplicationId, "READY")
+	err = c.CatalogConnector.UpdateImageState(imgDetails.ImageId, "READY")
 	if err != nil {
 		logger.Error(err.Error())
 		rw.WriteHeader(500)
 		return
 	}
-	err = c.BlobStoreConnector.DeleteApplicationBlob(appDetails.ApplicationId)
+	err = c.BlobStoreConnector.DeleteImageBlob(imgDetails.ImageId)
 	if err != nil {
 		logger.Error(err.Error())
 		rw.Write([]byte(err.Error()))

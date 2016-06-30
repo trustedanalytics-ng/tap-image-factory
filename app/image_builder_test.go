@@ -14,11 +14,11 @@ const (
 )
 
 var (
-	testApplicationArtifactContent = "Test artifact file content"
-	testDockerfileContent          = "FROM " + testBaseImage + "\n" + "RUN mkdir /test_dir\n" + "CMD [~/run.sh]"
+	testImageArtifactContent = "Test artifact file content"
+	testDockerfileContent    = "FROM " + testBaseImage + "\n" + "RUN mkdir /test_dir\n" + "CMD [~/run.sh]"
 
-	testApplicationArtifact = bytes.NewBufferString(testApplicationArtifactContent)
-	testDockerfile          = bytes.NewBufferString(testDockerfileContent)
+	testImageArtifact = bytes.NewBufferString(testImageArtifactContent)
+	testDockerfile    = bytes.NewBufferString(testDockerfileContent)
 )
 
 func TestCreateDockerfile(t *testing.T) {
@@ -38,7 +38,7 @@ func TestCreateDockerfile(t *testing.T) {
 func TestCreateBuildContext(t *testing.T) {
 	Convey("Test CreateBuildContext", t, func() {
 		Convey("Context should contains proper files", func() {
-			context, err := createBuildContext(testApplicationArtifact, testDockerfile)
+			context, err := createBuildContext(testImageArtifact, testDockerfile)
 			So(err, ShouldBeNil)
 			tr := tar.NewReader(context)
 			hdr, err := tr.Next()

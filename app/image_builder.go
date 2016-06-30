@@ -19,8 +19,8 @@ type DockerClient struct {
 }
 
 type ImageBuilder interface {
-	CreateImage(artifact io.Reader, baseImage, applicationId string) error
-	buildImage(buildContext io.Reader, applicationId string) error
+	CreateImage(artifact io.Reader, baseImage, imageId string) error
+	buildImage(buildContext io.Reader, imageId string) error
 	TagImage(imageId, tag string) error
 	PushImage(tag string) error
 }
@@ -73,8 +73,8 @@ func createDockerfile(baseImage string) io.Reader {
 	return buf
 }
 
-func createBuildContext(applicationArtifact io.Reader, dockerfile io.Reader) (io.Reader, error) {
-	applicationArtifactBytes, err := StreamToByte(applicationArtifact)
+func createBuildContext(imageArtifact io.Reader, dockerfile io.Reader) (io.Reader, error) {
+	imageArtifactBytes, err := StreamToByte(imageArtifact)
 	if err != nil {
 		return nil, err
 	}
@@ -86,7 +86,7 @@ func createBuildContext(applicationArtifact io.Reader, dockerfile io.Reader) (io
 	buf := new(bytes.Buffer)
 	tw := tar.NewWriter(buf)
 
-	err = writeToTar(artifactFileName, applicationArtifactBytes, tw)
+	err = writeToTar(artifactFileName, imageArtifactBytes, tw)
 	if err != nil {
 		return nil, err
 	}

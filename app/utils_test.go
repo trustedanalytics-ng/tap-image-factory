@@ -29,10 +29,10 @@ import (
 
 const (
 	catalogAddress   = "https://test-catalog.org"
-	applicationId    = "25de06b4-ac21-4454-bb82-e72bc05f3a5c"
-	applicationsPath = "/applications/"
+	imageId          = "25de06b4-ac21-4454-bb82-e72bc05f3a5c"
+	imagesPath       = "/images/"
 	blobStoreAddress = "https://test-blobstore.org"
-	blobId           = "app_" + applicationId
+	blobId           = "img_" + imageId
 	blobsPath        = "/blobs/"
 	blob             = "abcdefg"
 	baseImage        = "test/testimage"
