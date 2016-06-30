@@ -94,7 +94,7 @@ func TestGetBlob(t *testing.T) {
 			httpmock.RegisterResponder("GET", GetBlobStoreAddress()+blobsPath+blobId,
 				httpmock.NewStringResponder(404, ""))
 			res, err := c.GetApplicationBlob(applicationId)
-			So(err.Error(), ShouldEqual, "Invalid status: 404")
+			So(err.Error(), ShouldEqual, "Invalid status: 404 Response: ")
 			So(string(res), ShouldEqual, "")
 		})
 	})
@@ -119,7 +119,7 @@ func TestDeleteBlob(t *testing.T) {
 			httpmock.RegisterResponder("DELETE", GetBlobStoreAddress()+blobsPath+blobId,
 				httpmock.NewStringResponder(404, ""))
 			err := c.DeleteApplicationBlob(applicationId)
-			So(err.Error(), ShouldEqual, "Invalid status: 404")
+			So(err.Error(), ShouldEqual, "Invalid status: 404 Response: ")
 		})
 	})
 }

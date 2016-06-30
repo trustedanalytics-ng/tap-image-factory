@@ -23,9 +23,9 @@ import (
 )
 
 type Context struct {
-	BlobStoreConnector *BlobStoreConnector
-	CatalogConnector   *CatalogConnector
-	DockerConnector    *DockerHandler
+	BlobStoreConnector *Connector
+	CatalogConnector   *Connector
+	DockerConnector    *DockerClient
 }
 
 func (c *Context) SetupContext(rw web.ResponseWriter, req *web.Request, next web.NextMiddlewareFunc) {
@@ -35,7 +35,7 @@ func (c *Context) SetupContext(rw web.ResponseWriter, req *web.Request, next web
 	if err != nil {
 		logger.Critical("Could not instantiate Docker Client!")
 	}
-	c.DockerConnector = &DockerHandler{dockerClient, &DockerClient{}}
+	c.DockerConnector = dockerClient
 	next(rw, req)
 }
 
@@ -47,44 +47,44 @@ func (c *Context) BuildImage(rw web.ResponseWriter, req *web.Request) {
 		rw.WriteHeader(400)
 		return
 	}
-	appDetails, err := c.CatalogConnector.Api.GetApplicationDetails(req_json.ApplicationId)
+	appDetails, err := c.CatalogConnector.GetApplicationDetails(req_json.ApplicationId)
 	if err != nil {
 		logger.Error(err.Error())
 		rw.WriteHeader(500)
 		return
 	}
-	blobBytes, err := c.BlobStoreConnector.Api.GetApplicationBlob(appDetails.ApplicationId)
+	blobBytes, err := c.BlobStoreConnector.GetApplicationBlob(appDetails.ApplicationId)
 	if err != nil {
 		logger.Error(err.Error())
 		rw.WriteHeader(500)
 		return
 	}
-	err = c.CatalogConnector.Api.UpdateApplicationState(appDetails.ApplicationId, "BUILDING")
+	err = c.CatalogConnector.UpdateApplicationState(appDetails.ApplicationId, "BUILDING")
 	if err != nil {
 		logger.Error(err.Error())
 		rw.WriteHeader(500)
 		return
 	}
 	tag := GetDockerHostAddress() + "/" + appDetails.ApplicationId
-	err = c.DockerConnector.Api.CreateImage(bytes.NewReader(blobBytes), appDetails.BaseImage, tag)
+	err = c.DockerConnector.CreateImage(bytes.NewReader(blobBytes), appDetails.BaseImage, tag)
 	if err != nil {
 		logger.Error(err.Error())
 		rw.WriteHeader(500)
 		return
 	}
-	err = c.DockerConnector.Api.PushImage(tag)
+	err = c.DockerConnector.PushImage(tag)
 	if err != nil {
 		logger.Error(err.Error())
 		rw.WriteHeader(500)
 		return
 	}
-	err = c.CatalogConnector.Api.UpdateApplicationState(appDetails.ApplicationId, "READY")
+	err = c.CatalogConnector.UpdateApplicationState(appDetails.ApplicationId, "READY")
 	if err != nil {
 		logger.Error(err.Error())
 		rw.WriteHeader(500)
 		return
 	}
-	err = c.BlobStoreConnector.Api.DeleteApplicationBlob(appDetails.ApplicationId)
+	err = c.BlobStoreConnector.DeleteApplicationBlob(appDetails.ApplicationId)
 	if err != nil {
 		logger.Error(err.Error())
 		rw.Write([]byte(err.Error()))

@@ -14,11 +14,6 @@ const (
 	artifactFileName = "artifact.tar"
 )
 
-type DockerHandler struct {
-	Client *DockerClient
-	Api    ImageBuilder
-}
-
 type DockerClient struct {
 	cli *client.Client
 }

@@ -20,9 +20,7 @@ import (
 	"bytes"
 	"errors"
 	"io"
-	"net/http"
 	"os"
-	"time"
 )
 
 type ApplicationGetResponse struct {
@@ -50,35 +48,12 @@ func GetBlobStoreAddress() string {
 	return os.Getenv("BLOB_STORE_ADDRESS") + "/api/v1"
 }
 
-type BlobStoreConnector struct {
-	Server string
-	Client *http.Client
-	Api    BlobStoreApi
-}
-
-type CatalogConnector struct {
-	Server string
-	Client *http.Client
-	Api    CatalogApi
-}
-
 func GetDockerApiVersion() string {
 	return os.Getenv("DOCKER_API_VERSION")
 }
 
 func GetDockerHostAddress() string {
 	return os.Getenv("DOCKER_HOST_ADDRESS")
-}
-
-func NewCatalogConnector() *CatalogConnector {
-	transport := &http.Transport{}
-	clientCreator := &http.Client{Transport: transport, Timeout: time.Duration(30 * time.Minute)}
-
-	return &CatalogConnector{
-		Server: GetCatalogAddress(),
-		Client: clientCreator,
-		Api:    &CatalogConnector{},
-	}
 }
 
 func StreamToByte(stream io.Reader) ([]byte, error) {
@@ -97,15 +72,4 @@ func StreamToString(stream io.Reader) (string, error) {
 		return "", errors.New("Could not read stream into string: " + err.Error())
 	}
 	return buf.String(), nil
-}
-
-func NewBlobStoreConnector() *BlobStoreConnector {
-	transport := &http.Transport{}
-	clientCreator := &http.Client{Transport: transport, Timeout: time.Duration(30 * time.Minute)}
-
-	return &BlobStoreConnector{
-		Server: GetBlobStoreAddress(),
-		Client: clientCreator,
-		Api:    &BlobStoreConnector{},
-	}
 }

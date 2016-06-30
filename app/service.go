@@ -19,8 +19,10 @@ package main
 import (
 	"encoding/json"
 	"errors"
-	"github.com/trustedanalytics/tap-go-common/http"
+	. "github.com/trustedanalytics/tap-go-common/http"
+	"net/http"
 	"strconv"
+	"time"
 )
 
 type CatalogApi interface {
@@ -35,10 +37,35 @@ type BlobStoreApi interface {
 	DeleteApplicationBlob(applicationId string) error
 }
 
-func (c *CatalogConnector) GetApplicationDetails(applicationId string) (*ApplicationGetResponse, error) {
+type Connector struct {
+	Server string
+	Client *http.Client
+}
+
+func NewCatalogConnector() *Connector {
+	transport := &http.Transport{}
+	clientCreator := &http.Client{Transport: transport, Timeout: time.Duration(30 * time.Minute)}
+
+	return &Connector{
+		Server: GetCatalogAddress(),
+		Client: clientCreator,
+	}
+}
+
+func NewBlobStoreConnector() *Connector {
+	transport := &http.Transport{}
+	clientCreator := &http.Client{Transport: transport, Timeout: time.Duration(30 * time.Minute)}
+
+	return &Connector{
+		Server: GetBlobStoreAddress(),
+		Client: clientCreator,
+	}
+}
+
+func (c *Connector) GetApplicationDetails(applicationId string) (*ApplicationGetResponse, error) {
 	response := ApplicationGetResponse{}
 
-	status, body, err := http.RestGET(c.Server+"/applications/"+applicationId, nil, c.Client)
+	status, body, err := RestGET(c.Server+"/applications/"+applicationId, nil, c.Client)
 
 	if status != 200 || err != nil {
 		if err == nil {
@@ -56,14 +83,14 @@ func (c *CatalogConnector) GetApplicationDetails(applicationId string) (*Applica
 	return &response, nil
 }
 
-func (c *CatalogConnector) UpdateApplicationState(applicationId, state string) error {
+func (c *Connector) UpdateApplicationState(applicationId, state string) error {
 
 	req, err := json.Marshal(ApplicationStatePutRequest{state})
 	if err != nil {
 		return err
 	}
 
-	status, _, err := http.RestPATCH(c.Server+"/applications/"+applicationId, string(req), nil, c.Client)
+	status, _, err := RestPATCH(c.Server+"/applications/"+applicationId, string(req), nil, c.Client)
 
 	if status != 200 || err != nil {
 		if err == nil {
@@ -75,13 +102,13 @@ func (c *CatalogConnector) UpdateApplicationState(applicationId, state string) e
 	return nil
 }
 
-func (c *BlobStoreConnector) GetApplicationBlob(applicationId string) ([]byte, error) {
+func (c *Connector) GetApplicationBlob(applicationId string) ([]byte, error) {
 	blobId := "app_" + applicationId
 	return c.GetBlob(blobId)
 }
 
-func (c *BlobStoreConnector) GetBlob(blobId string) ([]byte, error) {
-	status, res, err := http.RestGET(c.Server+"/blobs/"+blobId, nil, c.Client)
+func (c *Connector) GetBlob(blobId string) ([]byte, error) {
+	status, res, err := RestGET(c.Server+"/blobs/"+blobId, nil, c.Client)
 	if status != 200 || err != nil {
 		if err == nil {
 			err = errors.New("Invalid status: " + strconv.Itoa(status) + " Response: " + string(res))
@@ -92,13 +119,13 @@ func (c *BlobStoreConnector) GetBlob(blobId string) ([]byte, error) {
 	return res, err
 }
 
-func (c *BlobStoreConnector) DeleteApplicationBlob(applicationId string) error {
+func (c *Connector) DeleteApplicationBlob(applicationId string) error {
 	blobId := "app_" + applicationId
 	return c.DeleteBlob(blobId)
 }
 
-func (c *BlobStoreConnector) DeleteBlob(blobId string) error {
-	status, res, err := http.RestDELETE(c.Server+"/blobs/"+blobId, "", nil, c.Client)
+func (c *Connector) DeleteBlob(blobId string) error {
+	status, res, err := RestDELETE(c.Server+"/blobs/"+blobId, "", nil, c.Client)
 	if status != 204 || err != nil {
 		if err == nil {
 			err = errors.New("Invalid status: " + strconv.Itoa(status) + " Response: " + string(res))
