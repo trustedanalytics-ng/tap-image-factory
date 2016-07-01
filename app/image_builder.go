@@ -34,8 +34,11 @@ func NewDockerClient() (*DockerClient, error) {
 	return &dockerClient, nil
 }
 
-func (d *DockerClient) CreateImage(artifact io.Reader, baseImage, tag string) error {
-	dockerfile := createDockerfile(baseImage)
+func (d *DockerClient) CreateImage(artifact io.Reader, imageType, tag string) error {
+	dockerfile, err := createDockerfile(imageType)
+	if err != nil {
+		return err
+	}
 	buildContext, err := createBuildContext(artifact, dockerfile)
 	if err != nil {
 		return err
@@ -63,13 +66,31 @@ func (d *DockerClient) PushImage(tag string) error {
 	_, err := d.cli.ImagePush(context.Background(), tag, types.ImagePushOptions{})
 	return err
 }
+func baseImageFromType(imageType string) (string, error) {
+	switch imageType {
+	case "JAVA":
+		return GetDockerHostAddress() + "/" + JavaBaseImage, nil
+	case "GO":
+		return GetDockerHostAddress() + "/" + GoBaseImage, nil
+	case "NODEJS":
+		return GetDockerHostAddress() + "/" + NodeJsBaseImage, nil
+	case "PYTHON":
+		return GetDockerHostAddress() + "/" + PythonBaseImage, nil
+	default:
+		return "", errors.New("No such type - base image not detected.")
+	}
+}
 
-func createDockerfile(baseImage string) io.Reader {
+func createDockerfile(imageType string) (io.Reader, error) {
+	baseImage, err := baseImageFromType(imageType)
+	if err != nil {
+		return nil, err
+	}
 	buf := new(bytes.Buffer)
 	buf.WriteString("FROM " + baseImage + "\n")
 	buf.WriteString("ADD " + artifactFileName + " /root\n")
 	buf.WriteString("CMD [/root/run.sh]")
-	return buf
+	return buf, nil
 }
 
 func createBuildContext(imageArtifact io.Reader, dockerfile io.Reader) (io.Reader, error) {

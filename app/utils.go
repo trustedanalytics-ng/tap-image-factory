@@ -19,17 +19,16 @@ package main
 import (
 	"bytes"
 	"errors"
+	"github.com/trustedanalytics/tap-catalog/models"
 	"io"
 	"os"
 )
 
 type ImageGetResponse struct {
-	ImageId     string `json:"id"`
-	TemplateId  string `json:"templateId"`
-	BaseImage   string `json:"image"`
-	Replication string `json:"replication"`
-	Type        string `json:"type"`
-	State       string `json:"state"`
+	ImageId    string `json:"id"`
+	Type       string `json:"type"`
+	State      string `json:"state"`
+	AuditTrail models.AuditTrail
 }
 
 type ImageStatePutRequest struct {
@@ -39,6 +38,13 @@ type ImageStatePutRequest struct {
 type BuildImagePostRequest struct {
 	ImageId string `json:"id"`
 }
+
+const (
+	JavaBaseImage   = "tap-base-java:java8-jessie"
+	GoBaseImage     = "tap-base-binary:binary-jessie"
+	NodeJsBaseImage = "tap-base-node:node4.4-jessie"
+	PythonBaseImage = "tap-base-python:python2.7-jessie"
+)
 
 func GetCatalogAddress() string {
 	return os.Getenv("CATALOG_HOST") + ":" + os.Getenv("CATALOG_PORT") + "/api/v1"

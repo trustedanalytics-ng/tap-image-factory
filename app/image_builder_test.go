@@ -6,11 +6,12 @@ import (
 	"archive/tar"
 	"bytes"
 	. "github.com/smartystreets/goconvey/convey"
+	"os"
 	"strings"
 )
 
 const (
-	testBaseImage = "test-base-image:0.1"
+	testBaseImage = JavaBaseImage
 )
 
 var (
@@ -24,11 +25,12 @@ var (
 func TestCreateDockerfile(t *testing.T) {
 	Convey("Test CreateDockerfile", t, func() {
 		Convey("Dockerfile should contains proper lines", func() {
-			dockerfile := createDockerfile(testBaseImage)
+			os.Setenv("DOCKER_HOST_ADDRESS", "localhost:5000")
+			dockerfile, _ := createDockerfile("JAVA")
 			dockerfileStr, _ := StreamToString(dockerfile)
 			dockerfileStringArray := strings.Split(dockerfileStr, "\n")
 
-			So(dockerfileStringArray[0], ShouldEqual, "FROM "+testBaseImage)
+			So(dockerfileStringArray[0], ShouldEqual, "FROM "+GetDockerHostAddress()+"/"+testBaseImage)
 			So(dockerfileStringArray[1], ShouldEqual, "ADD "+artifactFileName+" /root")
 			So(dockerfileStringArray[2], ShouldEqual, "CMD [/root/run.sh]")
 		})
