@@ -21,13 +21,14 @@ import (
 	"github.com/gocraft/web"
 
 	"github.com/trustedanalytics/image-factory/logger"
+	"os"
 )
 
 type Context struct{}
 
 var (
 	logger = logger_wrapper.InitLogger("main")
-	port   = "8080"
+	port   = os.Getenv("IMAGE_FACTORY_PORT")
 )
 
 func main() {

@@ -23,7 +23,7 @@ local_bin/app: verify_gopath
 	go fmt $(APP_DIR_LIST)
 
 run: local_bin/app
-	$(GOPATH)/bin/app
+	IMAGE_FACTORY_PORT=8080 HUB_ADDRESS="http://localhost:5000" $(GOPATH)/bin/app
 
 
 pack: build

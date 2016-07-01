@@ -24,17 +24,21 @@ import (
 )
 
 const (
-	catalogAddress   = "https://test-catalog.org"
+	catalogHost      = "127.0.0.1"
+	catalogPort      = "8083"
 	applicationId    = "25de06b4-ac21-4454-bb82-e72bc05f3a5c"
 	applicationsPath = "/applications/"
-	blobStoreAddress = "https://test-blobstore.org"
+	blobStoreHost    = "127.0.0.1"
+	blobStorePort    = "8084"
 	blobId           = "app_" + applicationId
 	blobsPath        = "/blobs/"
 	blob             = "abcdefg"
 )
 
 func TestGetApplicationDetails(t *testing.T) {
-	os.Setenv("CATALOG_ADDRESS", catalogAddress)
+	os.Setenv("CATALOG_HOST", catalogHost)
+	os.Setenv("CATALOG_PORT", catalogPort)
+	os.Setenv("IMAGE_FACTORY_PORT", "8080")
 	httpmock.Activate()
 	c := NewCatalogConnector()
 	c.Client.Transport = httpmock.DefaultTransport
@@ -60,7 +64,9 @@ func TestGetApplicationDetails(t *testing.T) {
 }
 
 func TestUpdateApplicationState(t *testing.T) {
-	os.Setenv("CATALOG_ADDRESS", catalogAddress)
+	os.Setenv("CATALOG_HOST", catalogHost)
+	os.Setenv("CATALOG_PORT", catalogPort)
+	os.Setenv("IMAGE_FACTORY_PORT", "8080")
 	httpmock.Activate()
 	c := NewCatalogConnector()
 	c.Client.Transport = httpmock.DefaultTransport
@@ -85,7 +91,9 @@ func TestUpdateApplicationState(t *testing.T) {
 }
 
 func TestGetBlob(t *testing.T) {
-	os.Setenv("BLOB_STORE_ADDRESS", blobStoreAddress)
+	os.Setenv("BLOB_STORE_HOST", blobStoreHost)
+	os.Setenv("BLOB_STORE_PORT", blobStorePort)
+	os.Setenv("IMAGE_FACTORY_PORT", "8080")
 	httpmock.Activate()
 	c := NewBlobStoreConnector()
 	c.Client.Transport = httpmock.DefaultTransport
@@ -104,14 +112,16 @@ func TestGetBlob(t *testing.T) {
 			httpmock.RegisterResponder("GET", GetBlobStoreAddress()+blobsPath+blobId,
 				httpmock.NewStringResponder(404, ""))
 			res, err := c.GetApplicationBlob(applicationId)
-			So(err.Error(), ShouldEqual, "Invalid status: 404")
+			So(err.Error(), ShouldEqual, "Invalid status: 404 Response: ")
 			So(string(res), ShouldEqual, "")
 		})
 	})
 }
 
 func TestDeleteBlob(t *testing.T) {
-	os.Setenv("BLOB_STORE_ADDRESS", blobStoreAddress)
+	os.Setenv("BLOB_STORE_HOST", blobStoreHost)
+	os.Setenv("BLOB_STORE_PORT", blobStorePort)
+	os.Setenv("IMAGE_FACTORY_PORT", "8080")
 	httpmock.Activate()
 	c := NewBlobStoreConnector()
 	c.Client.Transport = httpmock.DefaultTransport
@@ -129,7 +139,7 @@ func TestDeleteBlob(t *testing.T) {
 			httpmock.RegisterResponder("DELETE", GetBlobStoreAddress()+blobsPath+blobId,
 				httpmock.NewStringResponder(404, ""))
 			err := c.DeleteApplicationBlob(applicationId)
-			So(err.Error(), ShouldEqual, "Invalid status: 404")
+			So(err.Error(), ShouldEqual, "Invalid status: 404 Response: ")
 		})
 	})
 }
