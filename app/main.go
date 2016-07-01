@@ -30,10 +30,11 @@ var (
 )
 
 func main() {
-	r := web.New(Context{})
+	c := Context{}
+	c.SetupContext()
+	r := web.New(c)
 	r.Middleware(web.LoggerMiddleware)
-	r.Middleware((*Context).SetupContext)
-	r.Post("/api/v1/image", (*Context).BuildImage)
+	r.Post("/api/v1/image", c.BuildImage)
 
 	err := http.ListenAndServe("localhost:"+port, r)
 	if err != nil {

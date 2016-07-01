@@ -28,15 +28,14 @@ type Context struct {
 	DockerConnector    *DockerClient
 }
 
-func (c *Context) SetupContext(rw web.ResponseWriter, req *web.Request, next web.NextMiddlewareFunc) {
+func (c *Context) SetupContext() {
 	c.BlobStoreConnector = NewBlobStoreConnector()
 	c.CatalogConnector = NewCatalogConnector()
 	dockerClient, err := NewDockerClient()
 	if err != nil {
-		logger.Critical("Could not instantiate Docker Client!")
+		panic(err)
 	}
 	c.DockerConnector = dockerClient
-	next(rw, req)
 }
 
 func (c *Context) BuildImage(rw web.ResponseWriter, req *web.Request) {
