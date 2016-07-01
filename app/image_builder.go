@@ -19,22 +19,53 @@ type DockerClient struct {
 }
 
 type ImageBuilder interface {
-	CreateImage(artifact io.Reader, baseImage string)
-	BuildImage(buildContext io.Reader)
-	TagImage(imageId, tag string)
-	PushImage(tag string)
+	CreateImage(artifact io.Reader, baseImage, imageId string) error
+	buildImage(buildContext io.Reader, imageId string) error
+	TagImage(imageId, tag string) error
+	PushImage(tag string) error
 }
 
-func CreateClient() (*client.Client, error) {
+func NewDockerClient() (*DockerClient, error) {
 	defaultHeaders := map[string]string{"User-Agent": "engine-api-cli-1.0"}
-	cli, err := client.NewClient(GetDockerHostAddress(), GetDocerApiVersion(), nil, defaultHeaders)
+	cli, err := client.NewClient(GetDockerHostAddress(), GetDockerApiVersion(), nil, defaultHeaders)
 	if err != nil {
 		return nil, errors.New("Couldn't create docker client: " + err.Error())
 	}
-	return cli, nil
+	dockerClient := DockerClient{cli}
+	return &dockerClient, nil
 }
 
-func CreateDockerfile(baseImage string) io.Reader {
+func (d *DockerClient) CreateImage(artifact io.Reader, baseImage, tag string) error {
+	dockerfile := createDockerfile(baseImage)
+	buildContext, err := createBuildContext(artifact, dockerfile)
+	if err != nil {
+		return err
+	}
+	d.buildImage(buildContext, tag)
+	return nil
+}
+
+func (d *DockerClient) buildImage(buildContext io.Reader, tag string) error {
+	buildOptions := types.ImageBuildOptions{Tags: []string{tag}}
+	response, err := d.cli.ImageBuild(context.Background(), buildContext, buildOptions)
+	responseStr, _ := StreamToString(response.Body)
+	logger.Info(responseStr)
+	if err != nil {
+		return errors.New("Couldn't build docker image: " + err.Error())
+	}
+	return nil
+}
+
+func (d *DockerClient) TagImage(imageId, tag string) error {
+	return d.cli.ImageTag(context.Background(), imageId, tag)
+}
+
+func (d *DockerClient) PushImage(tag string) error {
+	_, err := d.cli.ImagePush(context.Background(), tag, types.ImagePushOptions{})
+	return err
+}
+
+func createDockerfile(baseImage string) io.Reader {
 	buf := new(bytes.Buffer)
 	buf.WriteString("FROM " + baseImage + "\n")
 	buf.WriteString("ADD " + artifactFileName + " /root\n")
@@ -42,8 +73,8 @@ func CreateDockerfile(baseImage string) io.Reader {
 	return buf
 }
 
-func CreateBuildContext(applicationArtifact io.Reader, dockerfile io.Reader) (io.Reader, error) {
-	applicationArtifactBytes, err := StreamToByte(applicationArtifact)
+func createBuildContext(imageArtifact io.Reader, dockerfile io.Reader) (io.Reader, error) {
+	imageArtifactBytes, err := StreamToByte(imageArtifact)
 	if err != nil {
 		return nil, err
 	}
@@ -55,7 +86,7 @@ func CreateBuildContext(applicationArtifact io.Reader, dockerfile io.Reader) (io
 	buf := new(bytes.Buffer)
 	tw := tar.NewWriter(buf)
 
-	err = writeToTar(artifactFileName, applicationArtifactBytes, tw)
+	err = writeToTar(artifactFileName, imageArtifactBytes, tw)
 	if err != nil {
 		return nil, err
 	}
@@ -87,33 +118,4 @@ func createHeader(fileName string, fileSize int64) *tar.Header {
 		Mode: 0700,
 		Size: fileSize,
 	}
-}
-
-func (d *DockerClient) CreateImage(artifact io.Reader, baseImage string) error {
-	dockerfile := CreateDockerfile(baseImage)
-	buildContext, err := CreateBuildContext(artifact, dockerfile)
-	if err != nil {
-		return err
-	}
-	d.BuildImage(buildContext)
-	return nil
-}
-
-func (d *DockerClient) BuildImage(buildContext io.Reader) error {
-	buildOptions := types.ImageBuildOptions{}
-	response, err := d.cli.ImageBuild(context.Background(), buildContext, buildOptions)
-	responseStr, _ := StreamToString(response.Body)
-	logger.Info(responseStr)
-	if err != nil {
-		return errors.New("Couldn't build docker image: " + err.Error())
-	}
-	return nil
-}
-
-func (d *DockerClient) TagImage(imageId, tag string) error {
-	return d.cli.ImageTag(context.Background(), imageId, tag)
-}
-
-func (d *DockerClient) PushImage(tag string) (io.Reader, error) {
-	return d.cli.ImagePush(context.Background(), tag, types.ImagePushOptions{})
 }

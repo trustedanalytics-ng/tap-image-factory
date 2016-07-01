@@ -23,8 +23,6 @@ import (
 	"github.com/trustedanalytics/image-factory/logger"
 )
 
-type Context struct{}
-
 var (
 	logger = logger_wrapper.InitLogger("main")
 	port   = "8080"
@@ -32,7 +30,9 @@ var (
 
 func main() {
 	r := web.New(Context{})
-	r.Post("/api/v1/app", (*Context).BuildImage)
+	r.Middleware(web.LoggerMiddleware)
+	r.Middleware((*Context).SetupContext)
+	r.Post("/api/v1/image", (*Context).BuildImage)
 
 	err := http.ListenAndServe("localhost:"+port, r)
 	if err != nil {

@@ -19,49 +19,78 @@ package main
 import (
 	"encoding/json"
 	"errors"
-	"github.com/trustedanalytics/tap-go-common/http"
+	. "github.com/trustedanalytics/tap-go-common/http"
+	"net/http"
 	"strconv"
+	"time"
 )
 
 type CatalogApi interface {
-	UpdateApplicationState(applicationId string)
-	GetApplicationDetails(applicationId string)
+	UpdateImageState(imageId, state string) error
+	GetImageDetails(imageId string) (*ImageGetResponse, error)
 }
 
 type BlobStoreApi interface {
-	GetBlob(applicationId string)
-	DeleteBlob(applicationId string)
+	GetBlob(blobId string) ([]byte, error)
+	GetImageBlob(imageId string) ([]byte, error)
+	DeleteBlob(blobId string) error
+	DeleteImageBlob(imageId string) error
 }
 
-func (c *Connector) GetApplicationDetails(applicationId string) (*ApplicationGetResponse, error) {
-	response := ApplicationGetResponse{}
+type Connector struct {
+	Server string
+	Client *http.Client
+}
 
-	status, body, err := http.RestGET(c.Server+"/applications/"+applicationId, nil, c.Client)
+func NewCatalogConnector() *Connector {
+	transport := &http.Transport{}
+	clientCreator := &http.Client{Transport: transport, Timeout: time.Duration(30 * time.Minute)}
+
+	return &Connector{
+		Server: GetCatalogAddress(),
+		Client: clientCreator,
+	}
+}
+
+func NewBlobStoreConnector() *Connector {
+	transport := &http.Transport{}
+	clientCreator := &http.Client{Transport: transport, Timeout: time.Duration(30 * time.Minute)}
+
+	return &Connector{
+		Server: GetBlobStoreAddress(),
+		Client: clientCreator,
+	}
+}
+
+func (c *Connector) GetImageDetails(imageId string) (*ImageGetResponse, error) {
+	response := ImageGetResponse{}
+
+	status, body, err := RestGET(c.Server+"/images/"+imageId, nil, c.Client)
 
 	if status != 200 || err != nil {
 		if err == nil {
 			err = errors.New("Invalid status: " + strconv.Itoa(status))
 		}
 		logger.Error(err)
-		return &ApplicationGetResponse{}, err
+		return &ImageGetResponse{}, err
 	}
 
 	err = json.Unmarshal(body, &response)
 	if err != nil {
 		logger.Error(err)
-		return &ApplicationGetResponse{}, err
+		return &ImageGetResponse{}, err
 	}
 	return &response, nil
 }
 
-func (c *Connector) UpdateApplicationState(applicationId, state string) error {
+func (c *Connector) UpdateImageState(imageId, state string) error {
 
-	req, err := json.Marshal(ApplicationStatePutRequest{state})
+	req, err := json.Marshal(ImageStatePutRequest{state})
 	if err != nil {
 		return err
 	}
 
-	status, _, err := http.RestPATCH(c.Server+"/applications/"+applicationId, string(req), nil, c.Client)
+	status, _, err := RestPATCH(c.Server+"/images/"+imageId, string(req), nil, c.Client)
 
 	if status != 200 || err != nil {
 		if err == nil {
@@ -73,16 +102,16 @@ func (c *Connector) UpdateApplicationState(applicationId, state string) error {
 	return nil
 }
 
-func (c *Connector) GetApplicationBlob(applicationId string) ([]byte, error) {
-	blobId := "app_" + applicationId
+func (c *Connector) GetImageBlob(imageId string) ([]byte, error) {
+	blobId := "img_" + imageId
 	return c.GetBlob(blobId)
 }
 
 func (c *Connector) GetBlob(blobId string) ([]byte, error) {
-	status, res, err := http.RestGET(c.Server+"/blobs/"+blobId, nil, c.Client)
+	status, res, err := RestGET(c.Server+"/blobs/"+blobId, nil, c.Client)
 	if status != 200 || err != nil {
 		if err == nil {
-			err = errors.New("Invalid status: "+strconv.Itoa(status)+" Response: "+string(res))
+			err = errors.New("Invalid status: " + strconv.Itoa(status) + " Response: " + string(res))
 		}
 		logger.Error(err)
 		return nil, err
@@ -90,16 +119,16 @@ func (c *Connector) GetBlob(blobId string) ([]byte, error) {
 	return res, err
 }
 
-func (c *Connector) DeleteApplicationBlob(applicationId string) error {
-	blobId := "app_" + applicationId
+func (c *Connector) DeleteImageBlob(imageId string) error {
+	blobId := "img_" + imageId
 	return c.DeleteBlob(blobId)
 }
 
 func (c *Connector) DeleteBlob(blobId string) error {
-	status, res, err := http.RestDELETE(c.Server+"/blobs/"+blobId, "", nil, c.Client)
+	status, res, err := RestDELETE(c.Server+"/blobs/"+blobId, "", nil, c.Client)
 	if status != 204 || err != nil {
 		if err == nil {
-			err = errors.New("Invalid status: "+strconv.Itoa(status)+" Response: "+string(res))
+			err = errors.New("Invalid status: " + strconv.Itoa(status) + " Response: " + string(res))
 		}
 		logger.Error(err)
 		return err
