@@ -24,9 +24,13 @@ import (
 )
 
 func TestGetImageDetails(t *testing.T) {
+	originalCatalogHost := os.Getenv("CATALOG_HOST")
+	originalCatalogPort := os.Getenv("CATALOG_PORT")
 	os.Setenv("CATALOG_HOST", catalogHost)
 	os.Setenv("CATALOG_PORT", catalogPort)
 	os.Setenv("IMAGE_FACTORY_PORT", "8080")
+	defer os.Setenv("CATALOG_HOST", originalCatalogHost)
+	defer os.Setenv("CATALOG_PORT", originalCatalogPort)
 	httpmock.Activate()
 	c := NewCatalogConnector()
 	c.Client.Transport = httpmock.DefaultTransport
@@ -52,9 +56,13 @@ func TestGetImageDetails(t *testing.T) {
 }
 
 func TestUpdateImageState(t *testing.T) {
+	originalCatalogHost := os.Getenv("CATALOG_HOST")
+	originalCatalogPort := os.Getenv("CATALOG_PORT")
 	os.Setenv("CATALOG_HOST", catalogHost)
 	os.Setenv("CATALOG_PORT", catalogPort)
 	os.Setenv("IMAGE_FACTORY_PORT", "8080")
+	defer os.Setenv("CATALOG_HOST", originalCatalogHost)
+	defer os.Setenv("CATALOG_PORT", originalCatalogPort)
 	httpmock.Activate()
 	c := NewCatalogConnector()
 	c.Client.Transport = httpmock.DefaultTransport
@@ -79,9 +87,13 @@ func TestUpdateImageState(t *testing.T) {
 }
 
 func TestGetBlob(t *testing.T) {
+	originalBlobStoreHost := os.Getenv("BLOB_STORE_HOST")
+	originalBlobStorePort := os.Getenv("BLOB_STORE_PORT")
 	os.Setenv("BLOB_STORE_HOST", blobStoreHost)
 	os.Setenv("BLOB_STORE_PORT", blobStorePort)
 	os.Setenv("IMAGE_FACTORY_PORT", "8080")
+	defer os.Setenv("BLOB_STORE_HOST", originalBlobStoreHost)
+	defer os.Setenv("BLOB_STORE_PORT", originalBlobStorePort)
 	httpmock.Activate()
 	c := NewBlobStoreConnector()
 	c.Client.Transport = httpmock.DefaultTransport
@@ -107,9 +119,13 @@ func TestGetBlob(t *testing.T) {
 }
 
 func TestDeleteBlob(t *testing.T) {
+	originalBlobStoreHost := os.Getenv("BLOB_STORE_HOST")
+	originalBlobStorePort := os.Getenv("BLOB_STORE_PORT")
 	os.Setenv("BLOB_STORE_HOST", blobStoreHost)
 	os.Setenv("BLOB_STORE_PORT", blobStorePort)
 	os.Setenv("IMAGE_FACTORY_PORT", "8080")
+	defer os.Setenv("BLOB_STORE_HOST", originalBlobStoreHost)
+	defer os.Setenv("BLOB_STORE_PORT", originalBlobStorePort)
 	httpmock.Activate()
 	c := NewBlobStoreConnector()
 	c.Client.Transport = httpmock.DefaultTransport

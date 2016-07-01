@@ -28,15 +28,14 @@ type Context struct {
 	DockerConnector    *DockerClient
 }
 
-func (c *Context) SetupContext(rw web.ResponseWriter, req *web.Request, next web.NextMiddlewareFunc) {
+func (c *Context) SetupContext() {
 	c.BlobStoreConnector = NewBlobStoreConnector()
 	c.CatalogConnector = NewCatalogConnector()
 	dockerClient, err := NewDockerClient()
 	if err != nil {
-		logger.Critical("Could not instantiate Docker Client!")
+		logger.Panic(err)
 	}
 	c.DockerConnector = dockerClient
-	next(rw, req)
 }
 
 func (c *Context) BuildImage(rw web.ResponseWriter, req *web.Request) {
@@ -66,7 +65,7 @@ func (c *Context) BuildImage(rw web.ResponseWriter, req *web.Request) {
 		return
 	}
 	tag := GetDockerHostAddress() + "/" + imgDetails.ImageId
-	err = c.DockerConnector.CreateImage(bytes.NewReader(blobBytes), imgDetails.BaseImage, tag)
+	err = c.DockerConnector.CreateImage(bytes.NewReader(blobBytes), imgDetails.Type, tag)
 	if err != nil {
 		logger.Error(err.Error())
 		rw.WriteHeader(500)

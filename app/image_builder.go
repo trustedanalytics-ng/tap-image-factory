@@ -34,8 +34,11 @@ func NewDockerClient() (*DockerClient, error) {
 	return &dockerClient, nil
 }
 
-func (d *DockerClient) CreateImage(artifact io.Reader, baseImage, tag string) error {
-	dockerfile := createDockerfile(baseImage)
+func (d *DockerClient) CreateImage(artifact io.Reader, imageType, tag string) error {
+	dockerfile, err := createDockerfile(imageType)
+	if err != nil {
+		return err
+	}
 	buildContext, err := createBuildContext(artifact, dockerfile)
 	if err != nil {
 		return err
@@ -64,12 +67,24 @@ func (d *DockerClient) PushImage(tag string) error {
 	return err
 }
 
-func createDockerfile(baseImage string) io.Reader {
+func baseImageFromType(imageType string) (string, error) {
+	baseImage, exists := ImagesMap[imageType]
+	if !exists {
+		return "", errors.New("No such type - base image not detected.")
+	}
+	return GetHubAddress() + "/" + baseImage, nil
+}
+
+func createDockerfile(imageType string) (io.Reader, error) {
+	baseImage, err := baseImageFromType(imageType)
+	if err != nil {
+		return nil, err
+	}
 	buf := new(bytes.Buffer)
 	buf.WriteString("FROM " + baseImage + "\n")
 	buf.WriteString("ADD " + artifactFileName + " /root\n")
 	buf.WriteString("CMD [/root/run.sh]")
-	return buf
+	return buf, nil
 }
 
 func createBuildContext(imageArtifact io.Reader, dockerfile io.Reader) (io.Reader, error) {
