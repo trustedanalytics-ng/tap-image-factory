@@ -27,8 +27,7 @@ run: local_bin/app
 
 
 pack: build
-	cp -Rf $(GOBIN)/app application
+	cp -Rf $(GOBIN)/app image-factory
 	echo "commit_sha=$(COMMIT_SHA)" > build_info.ini
-	zip -r -q image-factory-${VERSION}.zip application build_info.ini
-
+	zip -r -q image-factory-${VERSION}.zip image-factory build_info.ini
 
