@@ -24,7 +24,9 @@ import (
 )
 
 func TestGetImageDetails(t *testing.T) {
-	os.Setenv("CATALOG_ADDRESS", catalogAddress)
+	os.Setenv("CATALOG_HOST", catalogHost)
+	os.Setenv("CATALOG_PORT", catalogPort)
+	os.Setenv("IMAGE_FACTORY_PORT", "8080")
 	httpmock.Activate()
 	c := NewCatalogConnector()
 	c.Client.Transport = httpmock.DefaultTransport
@@ -50,7 +52,9 @@ func TestGetImageDetails(t *testing.T) {
 }
 
 func TestUpdateImageState(t *testing.T) {
-	os.Setenv("CATALOG_ADDRESS", catalogAddress)
+	os.Setenv("CATALOG_HOST", catalogHost)
+	os.Setenv("CATALOG_PORT", catalogPort)
+	os.Setenv("IMAGE_FACTORY_PORT", "8080")
 	httpmock.Activate()
 	c := NewCatalogConnector()
 	c.Client.Transport = httpmock.DefaultTransport
@@ -75,7 +79,9 @@ func TestUpdateImageState(t *testing.T) {
 }
 
 func TestGetBlob(t *testing.T) {
-	os.Setenv("BLOB_STORE_ADDRESS", blobStoreAddress)
+	os.Setenv("BLOB_STORE_HOST", blobStoreHost)
+	os.Setenv("BLOB_STORE_PORT", blobStorePort)
+	os.Setenv("IMAGE_FACTORY_PORT", "8080")
 	httpmock.Activate()
 	c := NewBlobStoreConnector()
 	c.Client.Transport = httpmock.DefaultTransport
@@ -101,7 +107,9 @@ func TestGetBlob(t *testing.T) {
 }
 
 func TestDeleteBlob(t *testing.T) {
-	os.Setenv("BLOB_STORE_ADDRESS", blobStoreAddress)
+	os.Setenv("BLOB_STORE_HOST", blobStoreHost)
+	os.Setenv("BLOB_STORE_PORT", blobStorePort)
+	os.Setenv("IMAGE_FACTORY_PORT", "8080")
 	httpmock.Activate()
 	c := NewBlobStoreConnector()
 	c.Client.Transport = httpmock.DefaultTransport

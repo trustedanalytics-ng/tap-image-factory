@@ -26,8 +26,7 @@ type ImageBuilder interface {
 }
 
 func NewDockerClient() (*DockerClient, error) {
-	defaultHeaders := map[string]string{"User-Agent": "engine-api-cli-1.0"}
-	cli, err := client.NewClient(GetDockerHostAddress(), GetDockerApiVersion(), nil, defaultHeaders)
+	cli, err := client.NewEnvClient()
 	if err != nil {
 		return nil, errors.New("Couldn't create docker client: " + err.Error())
 	}

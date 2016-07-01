@@ -41,11 +41,15 @@ type BuildImagePostRequest struct {
 }
 
 func GetCatalogAddress() string {
-	return os.Getenv("CATALOG_ADDRESS") + "/api/v1"
+	return os.Getenv("CATALOG_HOST") + ":" + os.Getenv("CATALOG_PORT") + "/api/v1"
 }
 
 func GetBlobStoreAddress() string {
-	return os.Getenv("BLOB_STORE_ADDRESS") + "/api/v1"
+	return os.Getenv("BLOB_STORE_HOST") + ":" + os.Getenv("BLOB_STORE_PORT") + "/api/v1"
+}
+
+func GetHubAddress() string {
+	return os.Getenv("HUB_ADDRESS")
 }
 
 func GetDockerApiVersion() string {
@@ -53,7 +57,7 @@ func GetDockerApiVersion() string {
 }
 
 func GetDockerHostAddress() string {
-	return os.Getenv("DOCKER_HOST_ADDRESS")
+	return os.Getenv("DOCKER_HOST")
 }
 
 func StreamToByte(stream io.Reader) ([]byte, error) {
