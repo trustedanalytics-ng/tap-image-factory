@@ -33,7 +33,7 @@ func (c *Context) SetupContext() {
 	c.CatalogConnector = NewCatalogConnector()
 	dockerClient, err := NewDockerClient()
 	if err != nil {
-		panic(err)
+		logger.Panic(err)
 	}
 	c.DockerConnector = dockerClient
 }

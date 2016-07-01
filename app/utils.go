@@ -39,11 +39,13 @@ type BuildImagePostRequest struct {
 	ImageId string `json:"id"`
 }
 
-const (
-	JavaBaseImage   = "tap-base-java:java8-jessie"
-	GoBaseImage     = "tap-base-binary:binary-jessie"
-	NodeJsBaseImage = "tap-base-node:node4.4-jessie"
-	PythonBaseImage = "tap-base-python:python2.7-jessie"
+var (
+	ImagesMap = map[string]string{
+		"JAVA":   "tap-base-java:java8-jessie",
+		"GO":     "tap-base-binary:binary-jessie",
+		"NODEJS": "tap-base-node:node4.4-jessie",
+		"PYTHON": "tap-base-python:python2.7-jessie",
+	}
 )
 
 func GetCatalogAddress() string {

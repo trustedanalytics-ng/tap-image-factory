@@ -66,19 +66,13 @@ func (d *DockerClient) PushImage(tag string) error {
 	_, err := d.cli.ImagePush(context.Background(), tag, types.ImagePushOptions{})
 	return err
 }
+
 func baseImageFromType(imageType string) (string, error) {
-	switch imageType {
-	case "JAVA":
-		return GetDockerHostAddress() + "/" + JavaBaseImage, nil
-	case "GO":
-		return GetDockerHostAddress() + "/" + GoBaseImage, nil
-	case "NODEJS":
-		return GetDockerHostAddress() + "/" + NodeJsBaseImage, nil
-	case "PYTHON":
-		return GetDockerHostAddress() + "/" + PythonBaseImage, nil
-	default:
+	baseImage, exists := ImagesMap[imageType]
+	if !exists {
 		return "", errors.New("No such type - base image not detected.")
 	}
+	return GetHubAddress() + "/" + baseImage, nil
 }
 
 func createDockerfile(imageType string) (io.Reader, error) {
