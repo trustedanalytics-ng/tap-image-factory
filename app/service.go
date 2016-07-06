@@ -19,7 +19,7 @@ package main
 import (
 	"encoding/json"
 	"errors"
-	. "github.com/trustedanalytics/tap-go-common/http"
+	. "github.com/trustedanalytics/tapng-go-common/http"
 	"net/http"
 	"strconv"
 	"time"

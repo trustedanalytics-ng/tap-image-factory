@@ -19,7 +19,7 @@ package main
 import (
 	"bytes"
 	"github.com/gocraft/web"
-	"github.com/trustedanalytics/tap-go-common/util"
+	"github.com/trustedanalytics/tapng-go-common/util"
 )
 
 type Context struct {

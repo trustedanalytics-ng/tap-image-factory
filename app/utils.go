@@ -19,7 +19,7 @@ package main
 import (
 	"bytes"
 	"errors"
-	"github.com/trustedanalytics/tap-catalog/models"
+	"github.com/trustedanalytics/tapng-catalog/models"
 	"io"
 	"os"
 )
