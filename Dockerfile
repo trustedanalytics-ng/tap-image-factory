@@ -18,14 +18,14 @@ MAINTAINER Joanna Taryma <joanna.taryma@intel.com>
 
 
 RUN mkdir -p /opt/app
-ADD image-factory /opt/app
+ADD application/tapng-image-factory /opt/app
 
-RUN chmod +x /opt/app/image-factory
+RUN chmod +x /opt/app/tapng-image-factory
 
 WORKDIR /opt/app/
 
 ENV IMAGE_FACTORY_PORT "8083"
 EXPOSE 8083
 
-ENTRYPOINT ["/opt/app/image-factory"]
+ENTRYPOINT ["/opt/app/tapng-image-factory"]
 CMD [""]
