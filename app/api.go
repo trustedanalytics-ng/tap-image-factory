@@ -14,12 +14,17 @@
  * limitations under the License.
  */
 
-package main
+package app
 
 import (
 	"bytes"
 	"github.com/gocraft/web"
 	"github.com/trustedanalytics/tapng-go-common/util"
+	"github.com/trustedanalytics/tapng-image-factory/logger"
+)
+
+var (
+	logger = logger_wrapper.InitLogger("main")
 )
 
 type Context struct {
