@@ -1,16 +1,14 @@
-export GOBIN=$(GOPATH)/bin
-export APP_DIR_LIST=$(shell go list ./... | grep -v /vendor/)
+GOBIN=$(GOPATH)/bin
+APP_DIR_LIST=$(shell go list ./... | grep -v /vendor/)
 COMMIT_COUNT=`git rev-list --count origin/master`
 COMMIT_SHA=`git rev-parse HEAD`
 VERSION=0.1.0
 all: build
 
-build: bin/app
-	@echo "build complete."
-
-bin/app: verify_gopath
+build: verify_gopath
 	CGO_ENABLED=0 go install -tags netgo $(APP_DIR_LIST)
 	go fmt $(APP_DIR_LIST)
+	@echo "build complete."
 
 bin/govendor: verify_gopath
 	go get -v -u github.com/kardianos/govendor
