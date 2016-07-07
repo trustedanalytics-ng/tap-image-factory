@@ -12,6 +12,9 @@ bin/app: verify_gopath
 	CGO_ENABLED=0 go install -tags netgo $(APP_DIR_LIST)
 	go fmt $(APP_DIR_LIST)
 
+bin/govendor: verify_gopath
+	go get -v -u github.com/kardianos/govendor
+
 verify_gopath:
 	@if [ -z "$(GOPATH)" ] || [ "$(GOPATH)" = "" ]; then\
 		echo "GOPATH not set. You need to set GOPATH before run this command";\
@@ -30,4 +33,9 @@ pack: build
 	cp -Rf $(GOBIN)/app image-factory
 	echo "commit_sha=$(COMMIT_SHA)" > build_info.ini
 	zip -r -q image-factory-${VERSION}.zip image-factory build_info.ini
+
+deps_update: verify_gopath
+	$(GOBIN)/govendor remove +all
+	$(GOBIN)/govendor add +external
+	@echo "Done"
 
