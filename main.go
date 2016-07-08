@@ -20,6 +20,7 @@ import (
 
 	"github.com/gocraft/web"
 
+	"github.com/trustedanalytics/tapng-image-factory/app"
 	"github.com/trustedanalytics/tapng-image-factory/logger"
 	"os"
 )
@@ -30,7 +31,7 @@ var (
 )
 
 func main() {
-	c := Context{}
+	c := app.Context{}
 	c.SetupContext()
 	r := web.New(c)
 	r.Middleware(web.LoggerMiddleware)
