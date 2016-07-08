@@ -59,13 +59,15 @@ func (d *DockerClient) CreateImage(artifact io.Reader, imageType, tag string) er
 	if err != nil {
 		return err
 	}
-	d.buildImage(buildContext, tag)
-	return nil
+	return d.buildImage(buildContext, tag)
 }
 
 func (d *DockerClient) buildImage(buildContext io.Reader, tag string) error {
 	buildOptions := types.ImageBuildOptions{Tags: []string{tag}}
 	response, err := d.cli.ImageBuild(context.Background(), buildContext, buildOptions)
+	if err != nil {
+		return errors.New("Couldn't build docker image: " + err.Error())
+	}
 	responseStr, _ := StreamToString(response.Body)
 	logger.Info(responseStr)
 	if err != nil {
@@ -99,7 +101,10 @@ func createDockerfile(imageType string) (io.Reader, error) {
 	buf := new(bytes.Buffer)
 	buf.WriteString("FROM " + baseImage + "\n")
 	buf.WriteString("ADD " + artifactFileName + " /root\n")
-	buf.WriteString("CMD [/root/run.sh]")
+	buf.WriteString("ENV PORT 80\n")
+	buf.WriteString("EXPOSE $PORT\n")
+	buf.WriteString("WORKDIR /root\n")
+	buf.WriteString("CMD [\"/root/run.sh\"]")
 	return buf, nil
 }
 

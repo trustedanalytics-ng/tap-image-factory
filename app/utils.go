@@ -22,6 +22,7 @@ import (
 	"github.com/trustedanalytics/tapng-catalog/models"
 	"io"
 	"os"
+	"strings"
 )
 
 type ImageGetResponse struct {
@@ -57,7 +58,12 @@ func GetBlobStoreAddress() string {
 }
 
 func GetHubAddress() string {
-	return os.Getenv("HUB_ADDRESS")
+	address := os.Getenv("HUB_ADDRESS")
+	split := strings.SplitN(address, "://", 2)
+	if len(split) == 2 {
+		return split[1]
+	}
+	return address
 }
 
 func GetDockerApiVersion() string {

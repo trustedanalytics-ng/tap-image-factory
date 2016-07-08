@@ -51,12 +51,14 @@ func (c *Context) BuildImage(rw web.ResponseWriter, req *web.Request) {
 		rw.WriteHeader(400)
 		return
 	}
+
 	imgDetails, err := c.CatalogConnector.GetImageDetails(req_json.ImageId)
 	if err != nil {
 		logger.Error(err.Error())
 		rw.WriteHeader(500)
 		return
 	}
+
 	blobBytes, err := c.BlobStoreConnector.GetImageBlob(imgDetails.ImageId)
 	if err != nil {
 		logger.Error(err.Error())
@@ -69,7 +71,9 @@ func (c *Context) BuildImage(rw web.ResponseWriter, req *web.Request) {
 		rw.WriteHeader(500)
 		return
 	}
-	tag := GetDockerHostAddress() + "/" + imgDetails.ImageId
+
+	tag := GetHubAddress() + "/" + imgDetails.ImageId
+
 	err = c.DockerConnector.CreateImage(bytes.NewReader(blobBytes), imgDetails.Type, tag)
 	if err != nil {
 		logger.Error(err.Error())
