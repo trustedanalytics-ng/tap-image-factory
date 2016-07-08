@@ -9,7 +9,7 @@ run: build
 	${GOPATH}/bin/tapng-image-factory
 
 run-local: build
-	CATALOG_PORT=8083 CATALOG_USER=admin CATALOG_PASS=password ${GOPATH}/bin/tapng-image-factory
+	IMAGE_FACTORY_PORT=8080 HUB_ADDRESS="http://localhost:5000" $(GOPATH)/bin/app
 
 docker_build: build
 	rm -Rf application && mkdir application

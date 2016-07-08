@@ -20,8 +20,8 @@ import (
 
 	"github.com/gocraft/web"
 
-	"github.com/trustedanalytics/tapng-image-factory/logger"
 	"github.com/trustedanalytics/tapng-image-factory/app"
+	"github.com/trustedanalytics/tapng-image-factory/logger"
 	"os"
 )
 
