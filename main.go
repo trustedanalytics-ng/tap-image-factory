@@ -37,7 +37,8 @@ func main() {
 	r.Middleware(web.LoggerMiddleware)
 	r.Post("/api/v1/image", c.BuildImage)
 
-	err := http.ListenAndServe("localhost:"+port, r)
+	logger.Info("Listening on port:", port)
+	err := http.ListenAndServe(":"+port, r)
 	if err != nil {
 		logger.Critical("Couldn't serve app on port ", port, " Application will be closed now.")
 	}
