@@ -72,7 +72,7 @@ func (c *Context) BuildImage(rw web.ResponseWriter, req *web.Request) {
 		return
 	}
 
-	tag := GetHubAddress() + "/" + imgDetails.ImageId
+	tag := GetHubAddressWithoutProtocol() + "/" + imgDetails.ImageId
 
 	err = c.DockerConnector.CreateImage(bytes.NewReader(blobBytes), imgDetails.Type, tag)
 	if err != nil {
