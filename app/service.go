@@ -19,12 +19,12 @@ package app
 import (
 	"encoding/json"
 	"errors"
+	catalogApi "github.com/trustedanalytics/tapng-catalog/client"
 	. "github.com/trustedanalytics/tapng-go-common/http"
 	"net/http"
+	"os"
 	"strconv"
 	"time"
-	"os"
-	catalogApi "github.com/trustedanalytics/tapng-catalog/client"
 )
 
 type BlobStoreApi interface {
@@ -40,7 +40,7 @@ type Connector struct {
 }
 
 func GetCatalogConnector() (*catalogApi.TapCatalogApiConnector, error) {
-	address := GetCatalogAddress()
+	address := GetCatalogAddressWithoutProtocol()
 	if os.Getenv("CATALOG_SSL_CERT_FILE_LOCATION") != "" {
 		return catalogApi.NewTapCatalogApiWithSSLAndBasicAuth(
 			"https://"+address,
@@ -64,11 +64,10 @@ func NewCatalogConnector() *Connector {
 	clientCreator := &http.Client{Transport: transport, Timeout: time.Duration(30 * time.Minute)}
 
 	return &Connector{
-		Server: GetCatalogAddress(),
+		Server: GetCatalogAddressWithoutProtocol(),
 		Client: clientCreator,
 	}
 }
-
 
 func NewBlobStoreConnector() *Connector {
 	transport := &http.Transport{}
@@ -121,8 +120,7 @@ func (c *Connector) UpdateImageState(imageId, state string) error {
 }
 
 func (c *Connector) GetImageBlob(imageId string) ([]byte, error) {
-	blobId := "img_" + imageId
-	return c.GetBlob(blobId)
+	return c.GetBlob(imageId)
 }
 
 func (c *Connector) GetBlob(blobId string) ([]byte, error) {

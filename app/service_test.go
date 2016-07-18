@@ -38,7 +38,7 @@ func TestGetImageDetails(t *testing.T) {
 
 	Convey("Test GetImageDetails", t, func() {
 		Convey("Should return proper response", func() {
-			httpmock.RegisterResponder("GET", GetCatalogAddress()+imagesPath+imageId,
+			httpmock.RegisterResponder("GET", GetCatalogAddressWithoutProtocol()+imagesPath+imageId,
 				httpmock.NewStringResponder(200, `{"id":"`+imageId+`"}`))
 			res, err := c.GetImageDetails(imageId)
 			So(err, ShouldBeNil)
@@ -46,7 +46,7 @@ func TestGetImageDetails(t *testing.T) {
 		})
 
 		Convey("Should return not found", func() {
-			httpmock.RegisterResponder("GET", GetCatalogAddress()+imagesPath+imageId,
+			httpmock.RegisterResponder("GET", GetCatalogAddressWithoutProtocol()+imagesPath+imageId,
 				httpmock.NewStringResponder(404, ``))
 			res, err := c.GetImageDetails(imageId)
 			So(err.Error(), ShouldEqual, "Invalid status: 404")
@@ -70,7 +70,7 @@ func TestUpdateImageState(t *testing.T) {
 
 	Convey("Test UpdateImageState", t, func() {
 		Convey("Should return proper response", func() {
-			httpmock.RegisterResponder("PATCH", GetCatalogAddress()+imagesPath+imageId,
+			httpmock.RegisterResponder("PATCH", GetCatalogAddressWithoutProtocol()+imagesPath+imageId,
 				httpmock.NewStringResponder(200, ``))
 			err := c.UpdateImageState(imageId, "created")
 			So(err, ShouldBeNil)
@@ -78,7 +78,7 @@ func TestUpdateImageState(t *testing.T) {
 		})
 
 		Convey("Should return not found", func() {
-			httpmock.RegisterResponder("PATCH", GetCatalogAddress()+imagesPath+imageId,
+			httpmock.RegisterResponder("PATCH", GetCatalogAddressWithoutProtocol()+imagesPath+imageId,
 				httpmock.NewStringResponder(404, ``))
 			err := c.UpdateImageState(imageId, "created")
 			So(err.Error(), ShouldEqual, "Invalid status: 404")

@@ -50,12 +50,12 @@ var (
 	}
 )
 
-func GetCatalogAddress() string {
-	return fmt.Sprintf("http://%v:%v/api/v1", os.Getenv("CATALOG_HOST"), os.Getenv("CATALOG_PORT"))
+func GetCatalogAddressWithoutProtocol() string {
+	return fmt.Sprintf("%v:%v", os.Getenv("CATALOG_HOST"), os.Getenv("CATALOG_PORT"))
 }
 
 func GetBlobStoreAddress() string {
-	return fmt.Sprintf("http://%v:%v/api/v1", os.Getenv("BLOB_STORE_HOST"), os.Getenv("BLOB_STORE_PORT"))
+	return fmt.Sprintf("%v:%v/api/v1", os.Getenv("BLOB_STORE_HOST"), os.Getenv("BLOB_STORE_PORT"))
 }
 
 func GetHubAddressWithoutProtocol() string {

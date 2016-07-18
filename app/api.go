@@ -20,10 +20,10 @@ import (
 	"bytes"
 	"encoding/json"
 	"github.com/gocraft/web"
-	"github.com/trustedanalytics/tapng-go-common/util"
-	"github.com/trustedanalytics/tapng-image-factory/logger"
 	catalogApi "github.com/trustedanalytics/tapng-catalog/client"
 	"github.com/trustedanalytics/tapng-catalog/models"
+	"github.com/trustedanalytics/tapng-go-common/util"
+	"github.com/trustedanalytics/tapng-image-factory/logger"
 )
 
 var (
@@ -31,9 +31,9 @@ var (
 )
 
 type Context struct {
-	BlobStoreConnector *Connector
-	TapCatalogApiConnector   *catalogApi.TapCatalogApiConnector
-	DockerConnector    *DockerClient
+	BlobStoreConnector     *Connector
+	TapCatalogApiConnector *catalogApi.TapCatalogApiConnector
+	DockerConnector        *DockerClient
 }
 
 func (c *Context) SetupContext() {
@@ -72,7 +72,7 @@ func (c *Context) BuildImage(rw web.ResponseWriter, req *web.Request) {
 		return
 	}
 	marshalledValue, _ := json.Marshal("BUILDING")
-	patches := []models.Patch{{Operation:models.OperationUpdate, Field:"State", Value:marshalledValue}}
+	patches := []models.Patch{{Operation: models.OperationUpdate, Field: "State", Value: marshalledValue}}
 	c.TapCatalogApiConnector.UpdateImage(imgDetails.Id, patches)
 	if err != nil {
 		logger.Error(err.Error())
@@ -95,7 +95,7 @@ func (c *Context) BuildImage(rw web.ResponseWriter, req *web.Request) {
 		return
 	}
 	marshalledValue, _ = json.Marshal("READY")
-	patches = []models.Patch{{Operation:models.OperationUpdate, Field:"State", Value:marshalledValue}}
+	patches = []models.Patch{{Operation: models.OperationUpdate, Field: "State", Value: marshalledValue}}
 	c.TapCatalogApiConnector.UpdateImage(imgDetails.Id, patches)
 	if err != nil {
 		logger.Error(err.Error())

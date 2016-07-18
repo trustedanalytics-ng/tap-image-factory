@@ -22,9 +22,9 @@ import (
 	"errors"
 	"github.com/docker/engine-api/client"
 	"github.com/docker/engine-api/types"
+	"github.com/trustedanalytics/tapng-catalog/models"
 	"golang.org/x/net/context"
 	"io"
-	"github.com/trustedanalytics/tapng-catalog/models"
 )
 
 const (
