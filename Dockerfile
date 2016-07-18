@@ -24,8 +24,8 @@ RUN chmod +x /opt/app/tapng-image-factory
 
 WORKDIR /opt/app/
 
-ENV IMAGE_FACTORY_PORT "8083"
-EXPOSE 8083
+ENV PORT "80"
+EXPOSE 80
 
 ENTRYPOINT ["/opt/app/tapng-image-factory"]
 CMD [""]
