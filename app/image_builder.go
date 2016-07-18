@@ -24,6 +24,7 @@ import (
 	"github.com/docker/engine-api/types"
 	"golang.org/x/net/context"
 	"io"
+	"github.com/trustedanalytics/tapng-catalog/models"
 )
 
 const (
@@ -50,7 +51,7 @@ func NewDockerClient() (*DockerClient, error) {
 	return &dockerClient, nil
 }
 
-func (d *DockerClient) CreateImage(artifact io.Reader, imageType, tag string) error {
+func (d *DockerClient) CreateImage(artifact io.Reader, imageType models.ImageType, tag string) error {
 	dockerfile, err := createDockerfile(imageType)
 	if err != nil {
 		return err
@@ -85,7 +86,7 @@ func (d *DockerClient) PushImage(tag string) error {
 	return err
 }
 
-func baseImageFromType(imageType string) (string, error) {
+func baseImageFromType(imageType models.ImageType) (string, error) {
 	baseImage, exists := ImagesMap[imageType]
 	if !exists {
 		return "", errors.New("No such type - base image not detected.")
@@ -93,7 +94,7 @@ func baseImageFromType(imageType string) (string, error) {
 	return GetHubAddressWithoutProtocol() + "/" + baseImage, nil
 }
 
-func createDockerfile(imageType string) (io.Reader, error) {
+func createDockerfile(imageType models.ImageType) (io.Reader, error) {
 	baseImage, err := baseImageFromType(imageType)
 	if err != nil {
 		return nil, err

@@ -42,7 +42,7 @@ type BuildImagePostRequest struct {
 }
 
 var (
-	ImagesMap = map[string]string{
+	ImagesMap = map[models.ImageType]string{
 		"JAVA":   "tap-base-java:java8-jessie",
 		"GO":     "tap-base-binary:binary-jessie",
 		"NODEJS": "tap-base-node:node4.4-jessie",

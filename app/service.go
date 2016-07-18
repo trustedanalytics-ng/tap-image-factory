@@ -23,12 +23,9 @@ import (
 	"net/http"
 	"strconv"
 	"time"
+	"os"
+	catalogApi "github.com/trustedanalytics/tapng-catalog/client"
 )
-
-type CatalogApi interface {
-	UpdateImageState(imageId, state string) error
-	GetImageDetails(imageId string) (*ImageGetResponse, error)
-}
 
 type BlobStoreApi interface {
 	GetBlob(blobId string) ([]byte, error)
@@ -42,6 +39,26 @@ type Connector struct {
 	Client *http.Client
 }
 
+func GetCatalogConnector() (*catalogApi.TapCatalogApiConnector, error) {
+	address := GetCatalogAddress()
+	if os.Getenv("CATALOG_SSL_CERT_FILE_LOCATION") != "" {
+		return catalogApi.NewTapCatalogApiWithSSLAndBasicAuth(
+			"https://"+address,
+			os.Getenv("CATALOG_USER"),
+			os.Getenv("CATALOG_PASS"),
+			os.Getenv("CATALOG_SSL_CERT_FILE_LOCATION"),
+			os.Getenv("CATALOG_SSL_KEY_FILE_LOCATION"),
+			os.Getenv("CATALOG_SSL_CA_FILE_LOCATION"),
+		)
+	} else {
+		return catalogApi.NewTapCatalogApiWithBasicAuth(
+			"http://"+address,
+			os.Getenv("CATALOG_USER"),
+			os.Getenv("CATALOG_PASS"),
+		)
+	}
+}
+
 func NewCatalogConnector() *Connector {
 	transport := &http.Transport{}
 	clientCreator := &http.Client{Transport: transport, Timeout: time.Duration(30 * time.Minute)}
@@ -51,6 +68,7 @@ func NewCatalogConnector() *Connector {
 		Client: clientCreator,
 	}
 }
+
 
 func NewBlobStoreConnector() *Connector {
 	transport := &http.Transport{}

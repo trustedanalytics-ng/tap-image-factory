@@ -1,0 +1,15 @@
+---
+kind: "ConfigMap"
+  apiVersion: "v1"
+  metadata:
+    name: "image-factory"
+    labels:
+      id: "image-factory"
+  data:
+    port: "80"
+    blob-store-port: "80"
+    blob-store-host: "{{ blob_store_service_details.api_response[0]['spec']['clusterIP'] }}"
+    catalog-host: "{{ catalog_service_details.api_response[0]['spec']['clusterIP'] }}"
+    catalog-port: "80"
+    hub-address: "{{ repository_uri }}"
+    endpoint: "{{ image_factory_service_details.api_response[0]['spec']['clusterIP'] }}:8086"

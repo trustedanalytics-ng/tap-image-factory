@@ -18,9 +18,12 @@ package app
 
 import (
 	"bytes"
+	"encoding/json"
 	"github.com/gocraft/web"
 	"github.com/trustedanalytics/tapng-go-common/util"
 	"github.com/trustedanalytics/tapng-image-factory/logger"
+	catalogApi "github.com/trustedanalytics/tapng-catalog/client"
+	"github.com/trustedanalytics/tapng-catalog/models"
 )
 
 var (
@@ -29,13 +32,17 @@ var (
 
 type Context struct {
 	BlobStoreConnector *Connector
-	CatalogConnector   *Connector
+	TapCatalogApiConnector   *catalogApi.TapCatalogApiConnector
 	DockerConnector    *DockerClient
 }
 
 func (c *Context) SetupContext() {
 	c.BlobStoreConnector = NewBlobStoreConnector()
-	c.CatalogConnector = NewCatalogConnector()
+	tapCatalogApiConnector, err := GetCatalogConnector()
+	if err != nil {
+		logger.Panic(err)
+	}
+	c.TapCatalogApiConnector = tapCatalogApiConnector
 	dockerClient, err := NewDockerClient()
 	if err != nil {
 		logger.Panic(err)
@@ -51,28 +58,29 @@ func (c *Context) BuildImage(rw web.ResponseWriter, req *web.Request) {
 		rw.WriteHeader(400)
 		return
 	}
-
-	imgDetails, err := c.CatalogConnector.GetImageDetails(req_json.ImageId)
+	imgDetails, err := c.TapCatalogApiConnector.GetImage(req_json.ImageId)
 	if err != nil {
 		logger.Error(err.Error())
 		rw.WriteHeader(500)
 		return
 	}
 
-	blobBytes, err := c.BlobStoreConnector.GetImageBlob(imgDetails.ImageId)
+	blobBytes, err := c.BlobStoreConnector.GetImageBlob(imgDetails.Id)
 	if err != nil {
 		logger.Error(err.Error())
 		rw.WriteHeader(500)
 		return
 	}
-	err = c.CatalogConnector.UpdateImageState(imgDetails.ImageId, "BUILDING")
+	marshalledValue, _ := json.Marshal("BUILDING")
+	patches := []models.Patch{{Operation:models.OperationUpdate, Field:"State", Value:marshalledValue}}
+	c.TapCatalogApiConnector.UpdateImage(imgDetails.Id, patches)
 	if err != nil {
 		logger.Error(err.Error())
 		rw.WriteHeader(500)
 		return
 	}
 
-	tag := GetHubAddressWithoutProtocol() + "/" + imgDetails.ImageId
+	tag := GetHubAddressWithoutProtocol() + "/" + imgDetails.Id
 
 	err = c.DockerConnector.CreateImage(bytes.NewReader(blobBytes), imgDetails.Type, tag)
 	if err != nil {
@@ -86,13 +94,15 @@ func (c *Context) BuildImage(rw web.ResponseWriter, req *web.Request) {
 		rw.WriteHeader(500)
 		return
 	}
-	err = c.CatalogConnector.UpdateImageState(imgDetails.ImageId, "READY")
+	marshalledValue, _ = json.Marshal("READY")
+	patches = []models.Patch{{Operation:models.OperationUpdate, Field:"State", Value:marshalledValue}}
+	c.TapCatalogApiConnector.UpdateImage(imgDetails.Id, patches)
 	if err != nil {
 		logger.Error(err.Error())
 		rw.WriteHeader(500)
 		return
 	}
-	err = c.BlobStoreConnector.DeleteImageBlob(imgDetails.ImageId)
+	err = c.BlobStoreConnector.DeleteImageBlob(imgDetails.Id)
 	if err != nil {
 		logger.Error(err.Error())
 		rw.Write([]byte(err.Error()))
