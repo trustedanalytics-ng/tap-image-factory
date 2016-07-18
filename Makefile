@@ -9,7 +9,7 @@ run: build
 	${GOPATH}/bin/tapng-image-factory
 
 run-local: build
-	IMAGE_FACTORY_PORT=8086 HUB_ADDRESS="http://localhost:5000" BLOB_STORE_HOST="http://localhost" BLOB_STORE_PORT=8084 $(GOPATH)/bin/tapng-image-factory
+	PORT=8086 HUB_ADDRESS="http://localhost:5000" BLOB_STORE_HOST="http://localhost" BLOB_STORE_PORT=8084 $(GOPATH)/bin/tapng-image-factory
 
 docker_build: build
 	rm -Rf application && mkdir application

@@ -19,11 +19,11 @@ package app
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"github.com/trustedanalytics/tapng-catalog/models"
 	"io"
 	"os"
 	"strings"
-	"fmt"
 )
 
 type ImageGetResponse struct {

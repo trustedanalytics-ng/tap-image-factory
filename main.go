@@ -16,30 +16,30 @@
 package main
 
 import (
-	"net/http"
-
 	"github.com/gocraft/web"
 
+	httpGoCommon "github.com/trustedanalytics/tapng-go-common/http"
 	"github.com/trustedanalytics/tapng-image-factory/app"
-	"github.com/trustedanalytics/tapng-image-factory/logger"
 	"os"
 )
 
-var (
-	logger = logger_wrapper.InitLogger("main")
-	port   = os.Getenv("IMAGE_FACTORY_PORT")
-)
-
 func main() {
-	c := app.Context{}
-	c.SetupContext()
-	r := web.New(c)
-	r.Middleware(web.LoggerMiddleware)
-	r.Post("/api/v1/image", c.BuildImage)
+	context := app.Context{}
+	context.SetupContext()
+	router := web.New(context)
+	router.Middleware(web.LoggerMiddleware)
+	apiRouter := router.Subrouter(context, "/api")
 
-	logger.Info("Listening on port:", port)
-	err := http.ListenAndServe(":"+port, r)
-	if err != nil {
-		logger.Critical("Couldn't serve app on port ", port, " Application will be closed now.")
+	v1Router := apiRouter.Subrouter(context, "/v1")
+	v1Router.Post("/image", context.BuildImage)
+
+	v1AliasRouter := apiRouter.Subrouter(context, "/v1.0")
+	v1AliasRouter.Post("/image", context.BuildImage)
+
+	if os.Getenv("IMAGE_FACTORY_SSL_CERT_FILE_LOCATION") != "" {
+		httpGoCommon.StartServerTLS(os.Getenv("IMAGE_FACTORY_SSL_CERT_FILE_LOCATION"),
+			os.Getenv("IMAGE_FACTORY_SSL_CERT_FILE_LOCATION"), router)
+	} else {
+		httpGoCommon.StartServer(router)
 	}
 }
