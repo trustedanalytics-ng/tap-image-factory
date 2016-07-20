@@ -101,7 +101,7 @@ func TestGetBlob(t *testing.T) {
 
 	Convey("Test GetBlob", t, func() {
 		Convey("Should return proper response", func() {
-			httpmock.RegisterResponder("GET", GetBlobStoreAddress()+blobsPath+blobId,
+			httpmock.RegisterResponder("GET", GetBlobStoreAddress()+blobsPath+imageId,
 				httpmock.NewStringResponder(200, blob))
 			res, err := c.GetImageBlob(imageId)
 			So(err, ShouldBeNil)
@@ -109,7 +109,7 @@ func TestGetBlob(t *testing.T) {
 		})
 
 		Convey("Should return not found", func() {
-			httpmock.RegisterResponder("GET", GetBlobStoreAddress()+blobsPath+blobId,
+			httpmock.RegisterResponder("GET", GetBlobStoreAddress()+blobsPath+imageId,
 				httpmock.NewStringResponder(404, ""))
 			res, err := c.GetImageBlob(imageId)
 			So(err.Error(), ShouldEqual, "Invalid status: 404 Response: ")
@@ -133,14 +133,14 @@ func TestDeleteBlob(t *testing.T) {
 
 	Convey("Test DeleteBlob", t, func() {
 		Convey("Should return proper response", func() {
-			httpmock.RegisterResponder("DELETE", GetBlobStoreAddress()+blobsPath+blobId,
+			httpmock.RegisterResponder("DELETE", GetBlobStoreAddress()+blobsPath+imageId,
 				httpmock.NewStringResponder(204, ""))
 			err := c.DeleteImageBlob(imageId)
 			So(err, ShouldBeNil)
 		})
 
 		Convey("Should return not found", func() {
-			httpmock.RegisterResponder("DELETE", GetBlobStoreAddress()+blobsPath+blobId,
+			httpmock.RegisterResponder("DELETE", GetBlobStoreAddress()+blobsPath+imageId,
 				httpmock.NewStringResponder(404, ""))
 			err := c.DeleteImageBlob(imageId)
 			So(err.Error(), ShouldEqual, "Invalid status: 404 Response: ")

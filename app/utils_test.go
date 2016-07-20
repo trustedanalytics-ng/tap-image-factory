@@ -34,7 +34,6 @@ const (
 	imagesPath    = "/images/"
 	blobStoreHost = "127.0.0.1"
 	blobStorePort = "8084"
-	blobId        = "img_" + imageId
 	blobsPath     = "/blobs/"
 	blob          = "abcdefg"
 )

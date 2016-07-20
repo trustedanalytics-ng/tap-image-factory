@@ -82,7 +82,9 @@ func (d *DockerClient) TagImage(imageId, tag string) error {
 }
 
 func (d *DockerClient) PushImage(tag string) error {
-	_, err := d.cli.ImagePush(context.Background(), tag, types.ImagePushOptions{})
+	//RegisterAuth is necessary even if no auth in registry - random value.
+	//github issue: https://github.com/docker/docker/issues/10983
+	_, err := d.cli.ImagePush(context.Background(), tag, types.ImagePushOptions{RegistryAuth:"cmFuZG9tX3ZhbHVl"})
 	return err
 }
 

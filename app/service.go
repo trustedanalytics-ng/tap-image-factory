@@ -136,8 +136,7 @@ func (c *Connector) GetBlob(blobId string) ([]byte, error) {
 }
 
 func (c *Connector) DeleteImageBlob(imageId string) error {
-	blobId := "img_" + imageId
-	return c.DeleteBlob(blobId)
+	return c.DeleteBlob(imageId)
 }
 
 func (c *Connector) DeleteBlob(blobId string) error {
