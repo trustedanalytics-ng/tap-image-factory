@@ -50,6 +50,18 @@ var (
 	}
 )
 
+func GetQueueConnectionString() string {
+	host := os.Getenv("QUEUE_HOST")
+	port := os.Getenv("QUEUE_PORT")
+	user := os.Getenv("QUEUE_USER")
+	pass := os.Getenv("QUEUE_PASS")
+	return fmt.Sprintf("amqp://%v:%v@%v:%v/", user, pass, host, port)
+}
+
+func GetQueueName() string {
+	return os.Getenv("QUEUE_NAME")
+}
+
 func GetCatalogAddressWithoutProtocol() string {
 	return fmt.Sprintf("%v:%v", os.Getenv("CATALOG_HOST"), os.Getenv("CATALOG_PORT"))
 }

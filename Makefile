@@ -10,7 +10,8 @@ run: build
 
 run-local: build
 	PORT=8086 HUB_ADDRESS="http://localhost:5000" BLOB_STORE_HOST="http://localhost" BLOB_STORE_PORT=8084 \
-	 $(GOPATH)/bin/tapng-image-factory
+	QUEUE_HOST=127.0.0.1 QUEUE_PORT=5672 QUEUE_USER=guest QUEUE_PASS=guest QUEUE_NAME=image-factory \
+        $(GOPATH)/bin/tapng-image-factory
 
 docker_build: build
 	rm -Rf application && mkdir application

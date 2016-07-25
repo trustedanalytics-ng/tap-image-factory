@@ -25,9 +25,27 @@ import (
 	"github.com/gocraft/web"
 
 	"github.com/trustedanalytics/tapng-go-common/logger"
+	"bytes"
 )
 
 var logger = logger_wrapper.InitLogger("api")
+
+func ReadJsonFromByte(content []byte, retstruct interface{}) error {
+	var err error
+	body, err := ioutil.ReadAll(bytes.NewReader(content))
+	if err != nil {
+		logger.Error("Error reading content:", err)
+		return err
+	}
+	b := []byte(body)
+	err = json.Unmarshal(b, &retstruct)
+	if err != nil {
+		logger.Error("Error parsing content as json:", err)
+		return err
+	}
+	logger.Debug("Content parsed as JSON: ", retstruct)
+	return nil
+}
 
 func ReadJson(req *web.Request, retstruct interface{}) error {
 	var err error
