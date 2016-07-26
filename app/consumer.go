@@ -26,14 +26,46 @@ func StartConsumer(ctx Context) {
 	failReceiverOnError(err, "Failed to open a channel")
 	defer ch.Close()
 
-	msgs, err := ch.Consume(
-		GetQueueName(), // queue
-		"",             // consumer - empty means generate unique id
-		true,           // auto-ack
+	/* DELETE THIS AFTER MONITOR IS IMPLEMENTED */
+	err = ch.ExchangeDeclare(
+		"tap.image-factory", // name
+		"direct",            // type
+		true,                // durable
+		false,               // auto-deleted
+		false,               // internal
+		false,               // no-wait
+		nil,                 // arguments
+	)
+	failReceiverOnError(err, "Failed to declare an exchange")
+
+	q, err := ch.QueueDeclare(
+		GetQueueName(), // name
+		true,           // durable
+		false,          // delete when usused
 		true,           // exclusive
-		false,          // no-local
 		false,          // no-wait
-		nil,            // args
+		nil,            // arguments
+	)
+	failReceiverOnError(err, "Failed to declare a queue")
+
+	err = ch.QueueBind(
+		q.Name,              // queue name
+		"tap.image-factory", // routing key
+		"tap.image-factory", // exchange
+		false,               // no-wait
+		nil,                 // arguments
+	)
+	failReceiverOnError(err, "Failed to bind a queue")
+	/* DELETE THIS AFTER MONITOR IS IMPLEMENTED */
+
+	msgs, err := ch.Consume(
+		q.Name, // queue
+		"",     // consumer - empty means generate unique id
+		true,   // auto-ack
+		true,   // exclusive
+		false,  // no-local
+		false,  // no-wait
+		nil,    // args
 	)
 	failReceiverOnError(err, "Failed to register a consumer")
 
