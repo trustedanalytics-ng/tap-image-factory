@@ -49,7 +49,6 @@ func (c *Context) SetupContext() {
 	}
 	c.DockerConnector = dockerClient
 }
-
 func (c *Context) BuildImage(rw web.ResponseWriter, req *web.Request) {
 	req_json := BuildImagePostRequest{}
 	err := util.ReadJson(req, &req_json)
@@ -110,4 +109,10 @@ func (c *Context) BuildImage(rw web.ResponseWriter, req *web.Request) {
 		return
 	}
 	rw.WriteHeader(201)
+}
+
+func (c *Context) updateImageWithState(imageId, state string) {
+	marshalledValue, _ := json.Marshal(state)
+	patches := []models.Patch{{Operation: models.OperationUpdate, Field: "State", Value: marshalledValue}}
+	c.TapCatalogApiConnector.UpdateImage(imageId, patches)
 }

@@ -26,6 +26,12 @@ import (
 func main() {
 	context := app.Context{}
 	context.SetupContext()
+
+	/* Queue Handling */
+	go app.StartConsumer(context)
+	/* Queue Handling */
+
+	/* REST API handling */
 	router := web.New(context)
 	router.Middleware(web.LoggerMiddleware)
 	apiRouter := router.Subrouter(context, "/api")
@@ -42,4 +48,5 @@ func main() {
 	} else {
 		httpGoCommon.StartServer(router)
 	}
+	/* REST API handling */
 }
