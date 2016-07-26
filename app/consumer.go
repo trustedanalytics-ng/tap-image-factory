@@ -86,6 +86,7 @@ func handleMessage(c Context, msg amqp.Delivery) {
 		logger.Error(err.Error())
 		return
 	}
+	c.updateImageWithState(msg_json.ImageId, "BUILDING")
 	imgDetails, err := c.TapCatalogApiConnector.GetImage(msg_json.ImageId)
 	if err != nil {
 		c.updateImageWithState(msg_json.ImageId, "ERROR")
@@ -99,13 +100,6 @@ func handleMessage(c Context, msg amqp.Delivery) {
 		logger.Error(err.Error())
 		return
 	}
-	c.updateImageWithState(msg_json.ImageId, "BUILDING")
-	if err != nil {
-		c.updateImageWithState(msg_json.ImageId, "ERROR")
-		logger.Error(err.Error())
-		return
-	}
-
 	tag := GetHubAddressWithoutProtocol() + "/" + imgDetails.Id
 
 	err = c.DockerConnector.CreateImage(bytes.NewReader(blobBytes), imgDetails.Type, tag)
