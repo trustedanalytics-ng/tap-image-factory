@@ -17,7 +17,7 @@ func failReceiverOnError(err error, msg string) {
 }
 
 func StartConsumer(ctx Context) {
-	logger.Error(GetQueueConnectionString())
+	logger.Info("Connecting to: " + GetQueueConnectionString())
 	conn, err := amqp.Dial(GetQueueConnectionString())
 	failReceiverOnError(err, "Failed to connect to Queue on address: "+GetQueueConnectionString())
 	defer conn.Close()
