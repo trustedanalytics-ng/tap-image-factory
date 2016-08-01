@@ -38,9 +38,11 @@ func main() {
 
 	v1Router := apiRouter.Subrouter(context, "/v1")
 	v1Router.Post("/image", context.BuildImage)
+	v1Router.Get("/healthz", context.GetImageFactoryHealth)
 
 	v1AliasRouter := apiRouter.Subrouter(context, "/v1.0")
 	v1AliasRouter.Post("/image", context.BuildImage)
+	v1AliasRouter.Get("/healthz", context.GetImageFactoryHealth)
 
 	if os.Getenv("IMAGE_FACTORY_SSL_CERT_FILE_LOCATION") != "" {
 		httpGoCommon.StartServerTLS(os.Getenv("IMAGE_FACTORY_SSL_CERT_FILE_LOCATION"),

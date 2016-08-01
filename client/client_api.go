@@ -2,6 +2,7 @@ package client
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -57,5 +58,14 @@ func (c *TapImageFactoryApiConnector) BuildImage(imageId string) error {
 	}
 	connector := c.getApiConnector(fmt.Sprintf("%s/api/v1/image", c.Address))
 	_, _, err = brokerHttp.RestPOST(connector.Url, string(requestBodyByte), connector.BasicAuth, connector.Client)
+	return err
+}
+
+func (c *TapImageFactoryApiConnector) GetImageFactoryHealth() error {
+	connector := c.getApiConnector(fmt.Sprintf("%s/api/v1/healthz", c.Address))
+	status, _, err := brokerHttp.RestGET(connector.Url, connector.BasicAuth, connector.Client)
+	if status != http.StatusOK {
+		err = errors.New("Invalid health status: " + string(status))
+	}
 	return err
 }
