@@ -45,7 +45,7 @@ func (c *TapImageFactoryApiConnector) getApiConnector(url string) brokerHttp.Api
 }
 
 type RequestJson struct {
-	ImageId string
+	ImageId string `json:"id"`
 }
 
 func (c *TapImageFactoryApiConnector) BuildImage(imageId string) error {
@@ -57,8 +57,11 @@ func (c *TapImageFactoryApiConnector) BuildImage(imageId string) error {
 		return err
 	}
 	connector := c.getApiConnector(fmt.Sprintf("%s/api/v1/image", c.Address))
-	_, _, err = brokerHttp.RestPOST(connector.Url, string(requestBodyByte), connector.BasicAuth, connector.Client)
-	return err
+	status, _, err := brokerHttp.RestPOST(connector.Url, string(requestBodyByte), connector.BasicAuth, connector.Client)
+	if err != nil || status != http.StatusCreated {
+		return errors.New(fmt.Sprintf("Error building image. Responded with %v. %Error: v", status, err))
+	}
+	return nil
 }
 
 func (c *TapImageFactoryApiConnector) GetImageFactoryHealth() error {
