@@ -17,6 +17,7 @@
 package util
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -25,10 +26,13 @@ import (
 	"github.com/gocraft/web"
 
 	"github.com/trustedanalytics/tapng-go-common/logger"
-	"bytes"
 )
 
 var logger = logger_wrapper.InitLogger("api")
+
+type MessageResponse struct {
+	Message string `json:"message"`
+}
 
 func ReadJsonFromByte(content []byte, retstruct interface{}) error {
 	var err error
@@ -78,19 +82,22 @@ func WriteJson(rw web.ResponseWriter, response interface{}, status_code int) err
 }
 
 func Respond500(rw web.ResponseWriter, err error) {
-	logger.Error("Respond500: reason: error ", err)
-	rw.WriteHeader(http.StatusInternalServerError)
-	fmt.Fprintf(rw, "%s", err.Error())
+	GenericRespond(http.StatusInternalServerError, rw, err)
 }
 
 func Respond404(rw web.ResponseWriter, err error) {
-	logger.Error("Respond404: reason: error ", err)
-	rw.WriteHeader(http.StatusNotFound)
-	fmt.Fprintf(rw, "%s", err.Error())
+	GenericRespond(http.StatusNotFound, rw, err)
 }
 
 func Respond400(rw web.ResponseWriter, err error) {
-	logger.Error("Respond400: reason: error ", err)
-	rw.WriteHeader(http.StatusBadRequest)
-	fmt.Fprintf(rw, "%s", err.Error())
+	GenericRespond(http.StatusBadRequest, rw, err)
+}
+
+func Respond409(rw web.ResponseWriter, err error) {
+	GenericRespond(http.StatusConflict, rw, err)
+}
+
+func GenericRespond(code int, rw web.ResponseWriter, err error) {
+	logger.Error(fmt.Sprintf("Respond %d, reason: %v", code, err))
+	WriteJson(rw, MessageResponse{err.Error()}, code)
 }
