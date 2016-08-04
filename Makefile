@@ -11,7 +11,7 @@ run: build
 run-local: build
 	PORT=8086 HUB_ADDRESS="http://localhost:5000" BLOB_STORE_HOST="http://localhost" BLOB_STORE_PORT=8084 \
 	QUEUE_HOST=127.0.0.1 QUEUE_PORT=5672 QUEUE_USER=guest QUEUE_PASS=guest QUEUE_NAME=image-factory \
-        $(GOPATH)/bin/tapng-image-factory
+	$(GOPATH)/bin/tapng-image-factory
 
 docker_build: build
 	rm -Rf application && mkdir application
@@ -27,11 +27,6 @@ kubernetes_deploy:
 	kubectl create -f service.yaml
 	kubectl create -f deployment.yaml
 
-deps_update: verify_gopath
-	$(GOBIN)/govendor remove +all
-	$(GOBIN)/govendor add +external
-	@echo "Done"
-
 bin/govendor: verify_gopath
 	go get -v -u github.com/kardianos/govendor
 
@@ -41,9 +36,13 @@ deps_fetch_specific: bin/govendor
 		echo " make deps_fetch_specific DEP_URL=github.com/nu7hatch/gouuid";\
 	exit 1 ;\
 	fi
-	@echo "Fetchinf specific deps in newest versions"
-
+	@echo "Fetching specific dependency in newest versions"
 	$(GOBIN)/govendor fetch -v $(DEP_URL)
+
+deps_update_tapng: verify_gopath
+	$(GOBIN)/govendor update github.com/trustedanalytics/...
+	rm -Rf vendor/github.com/trustedanalytics/tapng-image-factory
+	@echo "Done"
 
 verify_gopath:
 	@if [ -z "$(GOPATH)" ] || [ "$(GOPATH)" = "" ]; then\
@@ -64,4 +63,5 @@ build_anywhere: prepare_dirs
 	$(eval APP_DIR_LIST=$(shell GOPATH=$(GOPATH) go list ./temp/src/github.com/trustedanalytics/tapng-image-factory/... | grep -v /vendor/))
 	GOPATH=$(GOPATH) CGO_ENABLED=0 go install -tags netgo $(APP_DIR_LIST)
 	rm -Rf application && mkdir application
-	cp $(GOPATH)/bin/tapng-image-factory ./application/tapng-image-factory	
+	cp $(GOPATH)/bin/tapng-image-factory ./application/tapng-image-factory
+	rm -Rf ./temp
