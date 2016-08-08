@@ -13,9 +13,7 @@ run-local: build
 	QUEUE_HOST=127.0.0.1 QUEUE_PORT=5672 QUEUE_USER=guest QUEUE_PASS=guest QUEUE_NAME=image-factory \
 	$(GOPATH)/bin/tapng-image-factory
 
-docker_build: build
-	rm -Rf application && mkdir application
-	cp -Rf $(GOBIN)/tapng-image-factory application/
+docker_build: build_anywhere
 	docker build -t tapng-image-factory .
 
 push_docker: docker_build
