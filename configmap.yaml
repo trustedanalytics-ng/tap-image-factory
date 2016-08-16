@@ -1,0 +1,19 @@
+---
+kind: "ConfigMap"
+apiVersion: "v1"
+metadata:
+  name: "image-factory"
+  labels:
+    id: "image-factory"
+data:
+  hub-address: "127.0.0.1:5000"
+  endpoint: "{{ image_factory_service_details.api_response[0]['spec']['clusterIP'] }}:80"
+  queue-name: "image-factory"
+  image-factory-kubernetes-service-name: "IMAGE_FACTORY"
+  image-factory-host: "{{ image_factory_service_details.api_response[0]['spec']['clusterIP'] }}"
+  image-factory-port: "80"
+  image-factory-user: "admin"
+  image-factory-pass: "password"
+  image-factory-ssl-cert-file-location: ""
+  image-factory-ssl-key-file-location: ""
+  image-factory-ssl-ca-file-location: ""

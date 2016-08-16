@@ -1,0 +1,92 @@
+---
+kind: Deployment
+apiVersion: extensions/v1beta1
+metadata:
+  name: image-factory
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: image-factory
+    spec:
+      containers:
+      - name: image-factory
+        image: "tapng-image-factory:latest"
+        ports:
+          - containerPort: 80
+            protocol: TCP
+        volumeMounts:
+          - mountPath: /var/run/docker.sock
+            name: docker-sock
+        env:
+          - name: PORT
+            valueFrom:
+              configMapKeyRef:
+                name: image-factory
+                key: image-factory-port
+          - name: BLOB_STORE_PORT
+            valueFrom:
+              configMapKeyRef:
+                name: blob-store
+                key: blob-store-port
+          - name: BLOB_STORE_HOST
+            valueFrom:
+              configMapKeyRef:
+                name: blob-store
+                key: blob-store-host
+          - name: CATALOG_PORT
+            valueFrom:
+              configMapKeyRef:
+                name: catalog
+                key: catalog-port
+          - name: CATALOG_HOST
+            valueFrom:
+              configMapKeyRef:
+                name: catalog
+                key: catalog-host
+          - name: HUB_ADDRESS
+            valueFrom:
+              configMapKeyRef:
+                name: image-factory
+                key: hub-address
+          - name: CATALOG_USER
+            valueFrom:
+              configMapKeyRef:
+                name: catalog
+                key: catalog-user
+          - name: CATALOG_PASS
+            valueFrom:
+              configMapKeyRef:
+                name: catalog
+                key: catalog-pass
+          - name: QUEUE_PORT
+            valueFrom:
+              configMapKeyRef:
+                name: queue
+                key: port
+          - name: QUEUE_HOST
+            valueFrom:
+              configMapKeyRef:
+                name: queue
+                key: host
+          - name: QUEUE_USER
+            valueFrom:
+              configMapKeyRef:
+                name: queue
+                key: user
+          - name: QUEUE_PASS
+            valueFrom:
+              configMapKeyRef:
+                name: queue
+                key: password
+          - name: QUEUE_NAME
+            valueFrom:
+              configMapKeyRef:
+                name: image-factory
+                key: queue-name
+        imagePullPolicy: "IfNotPresent"
+      volumes:
+      - name: docker-sock
+        hostPath:
+          path: /var/run/docker.sock
