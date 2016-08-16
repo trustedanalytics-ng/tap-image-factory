@@ -13,13 +13,14 @@ const (
 	ImageTypeJava   ImageType = "JAVA"
 	ImageTypeGo     ImageType = "GO"
 	ImageTypeNodeJs ImageType = "NODEJS"
+	ImageTypePython ImageType = "PYTHON"
 )
 
 type ImageState string
 
 const (
-	ImageStatePending ImageState = "PENDING"
-	ImageTypeBuilding ImageState = "BUILDING"
-	ImageTypeError    ImageState = "ERROR"
-	ImageTypeReady    ImageState = "READY"
+	ImageStatePending  ImageState = "PENDING"
+	ImageStateBuilding ImageState = "BUILDING"
+	ImageStateError    ImageState = "ERROR"
+	ImageStateReady    ImageState = "READY"
 )

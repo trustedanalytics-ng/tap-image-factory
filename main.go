@@ -34,15 +34,13 @@ func main() {
 	/* REST API handling */
 	router := web.New(context)
 	router.Middleware(web.LoggerMiddleware)
-	apiRouter := router.Subrouter(context, "/api")
 
-	v1Router := apiRouter.Subrouter(context, "/v1")
-	v1Router.Post("/image", context.BuildImage)
-	v1Router.Get("/healthz", context.GetImageFactoryHealth)
+	router.Get("/healthz", context.GetImageFactoryHealth)
 
-	v1AliasRouter := apiRouter.Subrouter(context, "/v1.0")
-	v1AliasRouter.Post("/image", context.BuildImage)
-	v1AliasRouter.Get("/healthz", context.GetImageFactoryHealth)
+	apiRouter := router.Subrouter(context, "/api/v1")
+	route(apiRouter, &context)
+	v1AliasRouter := router.Subrouter(context, "/api/v1.0")
+	route(v1AliasRouter, &context)
 
 	if os.Getenv("IMAGE_FACTORY_SSL_CERT_FILE_LOCATION") != "" {
 		httpGoCommon.StartServerTLS(os.Getenv("IMAGE_FACTORY_SSL_CERT_FILE_LOCATION"),
@@ -51,4 +49,8 @@ func main() {
 		httpGoCommon.StartServer(router)
 	}
 	/* REST API handling */
+}
+
+func route(router *web.Router, context *app.Context) {
+	router.Post("/image", (*context).BuildImage)
 }
