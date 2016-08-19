@@ -1,10 +1,11 @@
 package app
 
 import (
+	"bytes"
 	"fmt"
 	"log"
+	"net/http"
 
-	"bytes"
 	"github.com/streadway/amqp"
 	"github.com/trustedanalytics/tapng-go-common/util"
 )
@@ -87,14 +88,15 @@ func handleMessage(c Context, msg amqp.Delivery) {
 		return
 	}
 	c.updateImageWithState(msg_json.ImageId, "BUILDING")
-	imgDetails, err := c.TapCatalogApiConnector.GetImage(msg_json.ImageId)
+	imgDetails, _, err := c.TapCatalogApiConnector.GetImage(msg_json.ImageId)
 	if err != nil {
 		c.updateImageWithState(msg_json.ImageId, "ERROR")
 		logger.Error(err.Error())
 		return
 	}
 
-	blobBytes, err := c.BlobStoreConnector.GetImageBlob(imgDetails.Id)
+	buffer := bytes.Buffer{}
+	err = c.BlobStoreConnector.GetBlob(imgDetails.Id, &buffer)
 	if err != nil {
 		c.updateImageWithState(msg_json.ImageId, "ERROR")
 		logger.Error(err.Error())
@@ -102,7 +104,7 @@ func handleMessage(c Context, msg amqp.Delivery) {
 	}
 	tag := GetHubAddressWithoutProtocol() + "/" + imgDetails.Id
 
-	err = c.DockerConnector.CreateImage(bytes.NewReader(blobBytes), imgDetails.Type, tag)
+	err = c.DockerConnector.CreateImage(bytes.NewReader(buffer.Bytes()), imgDetails.Type, tag)
 	if err != nil {
 		c.updateImageWithState(msg_json.ImageId, "ERROR")
 		logger.Error(err.Error())
@@ -115,9 +117,12 @@ func handleMessage(c Context, msg amqp.Delivery) {
 		return
 	}
 	c.updateImageWithState(msg_json.ImageId, "READY")
-	err = c.BlobStoreConnector.DeleteImageBlob(imgDetails.Id)
+	status, err := c.BlobStoreConnector.DeleteBlob(imgDetails.Id)
 	if err != nil {
 		logger.Error(err.Error())
 		return
+	}
+	if status != http.StatusNoContent {
+		logger.Warning("Blob removal failed. Actual status %v", status)
 	}
 }

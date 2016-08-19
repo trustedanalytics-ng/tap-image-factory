@@ -20,6 +20,9 @@ import (
 	"bytes"
 	"encoding/json"
 	"github.com/gocraft/web"
+	"net/http"
+
+	blobStoreApi "github.com/trustedanalytics/tapng-blob-store/client"
 	catalogApi "github.com/trustedanalytics/tapng-catalog/client"
 	"github.com/trustedanalytics/tapng-catalog/models"
 	"github.com/trustedanalytics/tapng-go-common/util"
@@ -31,18 +34,24 @@ var (
 )
 
 type Context struct {
-	BlobStoreConnector     *Connector
+	BlobStoreConnector     *blobStoreApi.TapBlobStoreApiConnector
 	TapCatalogApiConnector *catalogApi.TapCatalogApiConnector
 	DockerConnector        *DockerClient
 }
 
 func (c *Context) SetupContext() {
-	c.BlobStoreConnector = NewBlobStoreConnector()
+	tapBlobStoreConnector, err := GetBlobStoreConnector()
+	if err != nil {
+		logger.Panic(err)
+	}
+	c.BlobStoreConnector = tapBlobStoreConnector
+
 	tapCatalogApiConnector, err := GetCatalogConnector()
 	if err != nil {
 		logger.Panic(err)
 	}
 	c.TapCatalogApiConnector = tapCatalogApiConnector
+
 	dockerClient, err := NewDockerClient()
 	if err != nil {
 		logger.Panic(err)
@@ -57,14 +66,15 @@ func (c *Context) BuildImage(rw web.ResponseWriter, req *web.Request) {
 		rw.WriteHeader(400)
 		return
 	}
-	imgDetails, err := c.TapCatalogApiConnector.GetImage(req_json.ImageId)
+	imgDetails, _, err := c.TapCatalogApiConnector.GetImage(req_json.ImageId)
 	if err != nil {
 		logger.Error(err.Error())
 		rw.WriteHeader(500)
 		return
 	}
 
-	blobBytes, err := c.BlobStoreConnector.GetImageBlob(imgDetails.Id)
+	buffer := bytes.Buffer{}
+	err = c.BlobStoreConnector.GetBlob(imgDetails.Id, &buffer)
 	if err != nil {
 		logger.Error(err.Error())
 		rw.WriteHeader(500)
@@ -81,7 +91,7 @@ func (c *Context) BuildImage(rw web.ResponseWriter, req *web.Request) {
 
 	tag := GetHubAddressWithoutProtocol() + "/" + imgDetails.Id
 
-	err = c.DockerConnector.CreateImage(bytes.NewReader(blobBytes), imgDetails.Type, tag)
+	err = c.DockerConnector.CreateImage(bytes.NewReader(buffer.Bytes()), imgDetails.Type, tag)
 	if err != nil {
 		logger.Error(err.Error())
 		rw.WriteHeader(500)
@@ -101,13 +111,17 @@ func (c *Context) BuildImage(rw web.ResponseWriter, req *web.Request) {
 		rw.WriteHeader(500)
 		return
 	}
-	err = c.BlobStoreConnector.DeleteImageBlob(imgDetails.Id)
+	status, err := c.BlobStoreConnector.DeleteBlob(imgDetails.Id)
 	if err != nil {
 		logger.Error(err.Error())
 		rw.Write([]byte(err.Error()))
 		rw.WriteHeader(500)
 		return
 	}
+	if status != http.StatusNoContent {
+		logger.Warning("Blob removal failed. Actual status %v", status)
+	}
+
 	rw.WriteHeader(201)
 }
 

@@ -14,7 +14,7 @@ type TapApiImageFactoryApi interface {
 }
 
 func NewTapImageFactoryApiWithBasicAuth(address, username, password string) (*TapImageFactoryApiConnector, error) {
-	client, _, err := brokerHttp.GetHttpClientWithBasicAuth()
+	client, _, err := brokerHttp.GetHttpClient()
 	if err != nil {
 		return nil, err
 	}
@@ -57,7 +57,7 @@ func (c *TapImageFactoryApiConnector) BuildImage(imageId string) error {
 		return err
 	}
 	connector := c.getApiConnector(fmt.Sprintf("%s/api/v1/image", c.Address))
-	status, _, err := brokerHttp.RestPOST(connector.Url, string(requestBodyByte), connector.BasicAuth, connector.Client)
+	status, _, err := brokerHttp.RestPOST(connector.Url, string(requestBodyByte), brokerHttp.GetBasicAuthHeader(connector.BasicAuth), connector.Client)
 	if err != nil || status != http.StatusCreated {
 		return errors.New(fmt.Sprintf("Error building image. Responded with %v. %Error: v", status, err))
 	}
@@ -66,7 +66,7 @@ func (c *TapImageFactoryApiConnector) BuildImage(imageId string) error {
 
 func (c *TapImageFactoryApiConnector) GetImageFactoryHealth() error {
 	connector := c.getApiConnector(fmt.Sprintf("%s/api/v1/healthz", c.Address))
-	status, _, err := brokerHttp.RestGET(connector.Url, connector.BasicAuth, connector.Client)
+	status, _, err := brokerHttp.RestGET(connector.Url, brokerHttp.GetBasicAuthHeader(connector.BasicAuth), connector.Client)
 	if status != http.StatusOK {
 		err = errors.New("Invalid health status: " + string(status))
 	}
