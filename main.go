@@ -18,8 +18,8 @@ package main
 import (
 	"github.com/gocraft/web"
 
-	httpGoCommon "github.com/trustedanalytics/tapng-go-common/http"
-	"github.com/trustedanalytics/tapng-image-factory/app"
+	httpGoCommon "github.com/trustedanalytics/tap-go-common/http"
+	"github.com/trustedanalytics/tap-image-factory/app"
 	"os"
 )
 

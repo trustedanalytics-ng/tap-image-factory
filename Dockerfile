@@ -18,14 +18,14 @@ MAINTAINER Joanna Taryma <joanna.taryma@intel.com>
 
 
 RUN mkdir -p /opt/app
-ADD application/tapng-image-factory /opt/app
+ADD application/tap-image-factory /opt/app
 
-RUN chmod +x /opt/app/tapng-image-factory
+RUN chmod +x /opt/app/tap-image-factory
 
 WORKDIR /opt/app/
 
 ENV PORT "80"
 EXPOSE 80
 
-ENTRYPOINT ["/opt/app/tapng-image-factory"]
+ENTRYPOINT ["/opt/app/tap-image-factory"]
 CMD [""]

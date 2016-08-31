@@ -6,19 +6,19 @@ build:
 	go fmt $(APDIR)
 
 run: build
-	${GOPATH}/bin/tapng-image-factory
+	${GOPATH}/bin/tap-image-factory
 
 run-local: build
 	PORT=8086 HUB_ADDRESS="http://localhost:5000" BLOB_STORE_HOST="http://localhost" BLOB_STORE_PORT=8084 \
 	QUEUE_HOST=127.0.0.1 QUEUE_PORT=5672 QUEUE_USER=guest QUEUE_PASS=guest QUEUE_NAME=image-factory \
-	$(GOPATH)/bin/tapng-image-factory
+	$(GOPATH)/bin/tap-image-factory
 
 docker_build: build_anywhere
-	docker build -t tapng-image-factory .
+	docker build -t tap-image-factory .
 
 push_docker: docker_build
-	docker tag tapng-image-factory $(REPOSITORY_URL)/tapng-image-factory:latest
-	docker push $(REPOSITORY_URL)/tapng-image-factory:latest
+	docker tag tap-image-factory $(REPOSITORY_URL)/tap-image-factory:latest
+	docker push $(REPOSITORY_URL)/tap-image-factory:latest
 
 kubernetes_deploy:
 	kubectl create -f configmap.yaml
@@ -37,9 +37,9 @@ deps_fetch_specific: bin/govendor
 	@echo "Fetching specific dependency in newest versions"
 	$(GOBIN)/govendor fetch -v $(DEP_URL)
 
-deps_update_tapng: verify_gopath
+deps_update_tap: verify_gopath
 	$(GOBIN)/govendor update github.com/trustedanalytics/...
-	rm -Rf vendor/github.com/trustedanalytics/tapng-image-factory
+	rm -Rf vendor/github.com/trustedanalytics/tap-image-factory
 	@echo "Done"
 
 verify_gopath:
@@ -52,14 +52,14 @@ tests: verify_gopath
 	go test --cover $(APP_DIR_LIST)
 	
 prepare_dirs:
-	mkdir -p ./temp/src/github.com/trustedanalytics/tapng-image-factory
+	mkdir -p ./temp/src/github.com/trustedanalytics/tap-image-factory
 	$(eval REPOFILES=$(shell pwd)/*)
-	ln -sf $(REPOFILES) temp/src/github.com/trustedanalytics/tapng-image-factory
+	ln -sf $(REPOFILES) temp/src/github.com/trustedanalytics/tap-image-factory
 
 build_anywhere: prepare_dirs
 	$(eval GOPATH=$(shell cd ./temp; pwd))
-	$(eval APP_DIR_LIST=$(shell GOPATH=$(GOPATH) go list ./temp/src/github.com/trustedanalytics/tapng-image-factory/... | grep -v /vendor/))
+	$(eval APP_DIR_LIST=$(shell GOPATH=$(GOPATH) go list ./temp/src/github.com/trustedanalytics/tap-image-factory/... | grep -v /vendor/))
 	GOPATH=$(GOPATH) CGO_ENABLED=0 go build -tags netgo $(APP_DIR_LIST)
 	rm -Rf application && mkdir application
-	cp ./tapng-image-factory ./application/tapng-image-factory
+	cp ./tap-image-factory ./application/tap-image-factory
 	rm -Rf ./temp

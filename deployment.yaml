@@ -12,7 +12,7 @@ spec:
     spec:
       containers:
       - name: image-factory
-        image: "tapng-image-factory:latest"
+        image: "tap-image-factory:latest"
         ports:
           - containerPort: 80
             protocol: TCP
