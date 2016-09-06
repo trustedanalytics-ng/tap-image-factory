@@ -1,0 +1,47 @@
+swagger: '2.0'
+info:
+  version: "1"
+  title: tap-image-factory
+
+  description: The Image Factory component is responsible for building Docker images based on application binaries or sources provided by the end-user.
+schemes:
+  - https
+produces:
+  - application/json
+consumes:
+  - application/json
+paths:
+  /healthz:
+    get:
+      summary: Get health status
+      responses:
+        200:
+          description: OK
+        500:
+          description: Unexpected error
+  /api/v1/image:
+    post:
+      summary: Build Image
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+              $ref: "#/definitions/BuildImageRequest"
+      responses:
+        201:
+          description: Image built
+        400:
+          description: Bad request. Provided wrong body.
+          schema:
+            type: string
+        500:
+          description: unexpected error
+definitions:
+  BuildImageRequest:
+    type: object
+    required:
+      - id
+    properties:
+      id:
+        type: string
