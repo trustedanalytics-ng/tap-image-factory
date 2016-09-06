@@ -19,11 +19,11 @@ package app
 import (
 	"bytes"
 	"errors"
-	"fmt"
-	"github.com/trustedanalytics/tap-catalog/models"
 	"io"
 	"os"
 	"strings"
+
+	"github.com/trustedanalytics/tap-catalog/models"
 )
 
 type ImageGetResponse struct {
@@ -50,26 +50,6 @@ var (
 	}
 )
 
-func GetQueueConnectionString() string {
-	host := os.Getenv("QUEUE_HOST")
-	port := os.Getenv("QUEUE_PORT")
-	user := os.Getenv("QUEUE_USER")
-	pass := os.Getenv("QUEUE_PASS")
-	return fmt.Sprintf("amqp://%v:%v@%v:%v/", user, pass, host, port)
-}
-
-func GetQueueName() string {
-	return os.Getenv("QUEUE_NAME")
-}
-
-func GetCatalogAddressWithoutProtocol() string {
-	return fmt.Sprintf("%v:%v", os.Getenv("CATALOG_HOST"), os.Getenv("CATALOG_PORT"))
-}
-
-func GetBlobStoreAddress() string {
-	return fmt.Sprintf("%v:%v", os.Getenv("BLOB_STORE_HOST"), os.Getenv("BLOB_STORE_PORT"))
-}
-
 func GetHubAddressWithoutProtocol() string {
 	address := os.Getenv("HUB_ADDRESS")
 	split := strings.SplitN(address, "://", 2)
@@ -77,14 +57,6 @@ func GetHubAddressWithoutProtocol() string {
 		return split[1]
 	}
 	return address
-}
-
-func GetDockerApiVersion() string {
-	return os.Getenv("DOCKER_API_VERSION")
-}
-
-func GetDockerHostAddress() string {
-	return os.Getenv("DOCKER_HOST")
 }
 
 func StreamToByte(stream io.Reader) ([]byte, error) {

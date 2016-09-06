@@ -20,11 +20,13 @@ import (
 	"archive/tar"
 	"bytes"
 	"errors"
+	"io"
+
 	"github.com/docker/engine-api/client"
 	"github.com/docker/engine-api/types"
-	"github.com/trustedanalytics/tap-catalog/models"
 	"golang.org/x/net/context"
-	"io"
+
+	"github.com/trustedanalytics/tap-catalog/models"
 )
 
 const (

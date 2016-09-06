@@ -17,18 +17,23 @@ package main
 
 import (
 	"github.com/gocraft/web"
+	"os"
+	"sync"
 
 	httpGoCommon "github.com/trustedanalytics/tap-go-common/http"
+	"github.com/trustedanalytics/tap-go-common/util"
 	"github.com/trustedanalytics/tap-image-factory/app"
-	"os"
 )
 
+var waitGroup = &sync.WaitGroup{}
+
 func main() {
-	context := app.Context{}
-	context.SetupContext()
+	go util.TerminationObserver(waitGroup, "Container-broker")
+
+	context := app.SetupContext()
 
 	/* Queue Handling */
-	go app.StartConsumer(context)
+	go app.StartConsumer(waitGroup)
 	/* Queue Handling */
 
 	/* REST API handling */
@@ -37,10 +42,10 @@ func main() {
 
 	router.Get("/healthz", context.GetImageFactoryHealth)
 
-	apiRouter := router.Subrouter(context, "/api/v1")
-	route(apiRouter, &context)
-	v1AliasRouter := router.Subrouter(context, "/api/v1.0")
-	route(v1AliasRouter, &context)
+	apiRouter := router.Subrouter(*context, "/api/v1")
+	route(apiRouter, context)
+	v1AliasRouter := router.Subrouter(*context, "/api/v1.0")
+	route(v1AliasRouter, context)
 
 	if os.Getenv("IMAGE_FACTORY_SSL_CERT_FILE_LOCATION") != "" {
 		httpGoCommon.StartServerTLS(os.Getenv("IMAGE_FACTORY_SSL_CERT_FILE_LOCATION"),
