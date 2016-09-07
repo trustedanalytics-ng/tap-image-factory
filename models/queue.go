@@ -17,6 +17,6 @@
 package models
 
 const (
-	IMAGE_FACTORY_QUEUE_NAME         = "tap-image-factory"
+	IMAGE_FACTORY_QUEUE_NAME        = "tap-image-factory"
 	IMAGE_FACTORY_IMAGE_ROUTING_KEY = "image"
 )

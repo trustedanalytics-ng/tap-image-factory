@@ -116,7 +116,7 @@ func CreateExchangeWithQueueByRoutingKeys(ch *amqp.Channel, name string, routing
 		name, // name
 		true, // durable
 		false, // delete when usused
-		true, // exclusive
+		false, // exclusive
 		false, // no-wait
 		nil, // arguments
 	)
