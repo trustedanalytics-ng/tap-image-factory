@@ -58,7 +58,7 @@ func (c *TapImageFactoryApiConnector) BuildImage(imageId string) error {
 	}
 	connector := c.getApiConnector(fmt.Sprintf("%s/api/v1/image", c.Address))
 	status, _, err := brokerHttp.RestPOST(connector.Url, string(requestBodyByte), brokerHttp.GetBasicAuthHeader(connector.BasicAuth), connector.Client)
-	if err != nil || status != http.StatusCreated {
+	if err != nil || status != http.StatusAccepted {
 		return errors.New(fmt.Sprintf("Error building image. Responded with %v. %Error: v", status, err))
 	}
 	return nil

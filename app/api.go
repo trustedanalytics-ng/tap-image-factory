@@ -64,48 +64,48 @@ func SetupContext() *Context {
 	return ctx
 }
 func (c *Context) BuildImage(rw web.ResponseWriter, req *web.Request) {
-	req_json := BuildImagePostRequest{}
-	if err := util.ReadJson(req, &req_json); err != nil {
+	buildRequest := BuildImagePostRequest{}
+	if err := util.ReadJson(req, &buildRequest); err != nil {
 		util.Respond400(rw, err)
 		return
 	}
 
 	go func() {
-		if err := BuildAndPushImage; err != nil {
+		if err := BuildAndPushImage(buildRequest); err != nil {
 			logger.Error("Building image error:", err)
 		}
 	}()
 	util.WriteJson(rw, "", http.StatusAccepted)
 }
 
-func BuildAndPushImage(req_json BuildImagePostRequest) error {
-	if err := updateImageWithState(req_json.ImageId, "BUILDING", "PENDING"); err != nil {
+func BuildAndPushImage(buildRequest BuildImagePostRequest) error {
+	if err := updateImageWithState(buildRequest.ImageId, "BUILDING", "PENDING"); err != nil {
 		return err
 	} else {
-		imgDetails, _, err := ctx.TapCatalogApiConnector.GetImage(req_json.ImageId)
+		imgDetails, _, err := ctx.TapCatalogApiConnector.GetImage(buildRequest.ImageId)
 		if err != nil {
-			updateImageWithState(req_json.ImageId, "ERROR", "")
+			updateImageWithState(buildRequest.ImageId, "ERROR", "")
 			return err
 		}
 
 		buffer := bytes.Buffer{}
 		if err = ctx.BlobStoreConnector.GetBlob(imgDetails.Id, &buffer); err != nil {
-			updateImageWithState(req_json.ImageId, "ERROR", "")
+			updateImageWithState(buildRequest.ImageId, "ERROR", "")
 			return err
 		}
 
 		tag := GetHubAddressWithoutProtocol() + "/" + imgDetails.Id
 		if err = ctx.DockerConnector.CreateImage(bytes.NewReader(buffer.Bytes()), imgDetails.Type, tag); err != nil {
-			updateImageWithState(req_json.ImageId, "ERROR", "")
+			updateImageWithState(buildRequest.ImageId, "ERROR", "")
 			return err
 		}
 
 		if err = ctx.DockerConnector.PushImage(tag); err != nil {
-			updateImageWithState(req_json.ImageId, "ERROR", "")
+			updateImageWithState(buildRequest.ImageId, "ERROR", "")
 			return err
 		}
 
-		updateImageWithState(req_json.ImageId, "READY", "")
+		updateImageWithState(buildRequest.ImageId, "READY", "")
 
 		status, err := ctx.BlobStoreConnector.DeleteBlob(imgDetails.Id)
 		if err != nil {
@@ -115,6 +115,7 @@ func BuildAndPushImage(req_json BuildImagePostRequest) error {
 		if status != http.StatusNoContent {
 			logger.Warning("Blob removal failed. Actual status %v", status)
 		}
+		logger.Info("Image build SUCCESS! Id:", buildRequest.ImageId)
 		return nil
 	}
 }
