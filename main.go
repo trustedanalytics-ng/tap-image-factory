@@ -30,7 +30,7 @@ var waitGroup = &sync.WaitGroup{}
 func main() {
 	go util.TerminationObserver(waitGroup, "Container-broker")
 
-	context := app.SetupContext()
+	context := *app.SetupContext()
 
 	/* Queue Handling */
 	go app.StartConsumer(waitGroup)
@@ -42,10 +42,10 @@ func main() {
 
 	router.Get("/healthz", context.GetImageFactoryHealth)
 
-	apiRouter := router.Subrouter(*context, "/api/v1")
-	route(apiRouter, context)
-	v1AliasRouter := router.Subrouter(*context, "/api/v1.0")
-	route(v1AliasRouter, context)
+	apiRouter := router.Subrouter(context, "/api/v1")
+	route(apiRouter, &context)
+	v1AliasRouter := router.Subrouter(context, "/api/v1.0")
+	route(v1AliasRouter, &context)
 
 	if os.Getenv("IMAGE_FACTORY_SSL_CERT_FILE_LOCATION") != "" {
 		httpGoCommon.StartServerTLS(os.Getenv("IMAGE_FACTORY_SSL_CERT_FILE_LOCATION"),
@@ -57,5 +57,5 @@ func main() {
 }
 
 func route(router *web.Router, context *app.Context) {
-	router.Post("/image", (*context).BuildImage)
+	router.Post("/image", context.BuildImage)
 }
