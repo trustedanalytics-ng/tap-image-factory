@@ -25,9 +25,10 @@ import (
 
 	blobStoreApi "github.com/trustedanalytics/tap-blob-store/client"
 	catalogApi "github.com/trustedanalytics/tap-catalog/client"
-	"github.com/trustedanalytics/tap-catalog/models"
+	catalogModels "github.com/trustedanalytics/tap-catalog/models"
 	"github.com/trustedanalytics/tap-go-common/util"
 	"github.com/trustedanalytics/tap-image-factory/logger"
+	"github.com/trustedanalytics/tap-image-factory/models"
 )
 
 var logger = logger_wrapper.InitLogger("app")
@@ -64,7 +65,7 @@ func SetupContext() *Context {
 	return ctx
 }
 func (c *Context) BuildImage(rw web.ResponseWriter, req *web.Request) {
-	buildRequest := BuildImagePostRequest{}
+	buildRequest := models.BuildImagePostRequest{}
 	if err := util.ReadJson(req, &buildRequest); err != nil {
 		util.Respond400(rw, err)
 		return
@@ -78,7 +79,7 @@ func (c *Context) BuildImage(rw web.ResponseWriter, req *web.Request) {
 	util.WriteJson(rw, "", http.StatusAccepted)
 }
 
-func BuildAndPushImage(buildRequest BuildImagePostRequest) error {
+func BuildAndPushImage(buildRequest models.BuildImagePostRequest) error {
 	if err := updateImageWithState(buildRequest.ImageId, "BUILDING", "PENDING"); err != nil {
 		return err
 	} else {
@@ -126,7 +127,7 @@ func updateImageWithState(imageId, state, previousState string) error {
 		return err
 	}
 
-	patch := models.Patch{Operation: models.OperationUpdate, Field: "State", Value: marshalledValue}
+	patch := catalogModels.Patch{Operation: catalogModels.OperationUpdate, Field: "State", Value: marshalledValue}
 	if previousState != "" {
 		previousStateByte, err := json.Marshal(previousState)
 		if err != nil {
@@ -135,6 +136,6 @@ func updateImageWithState(imageId, state, previousState string) error {
 		patch.PrevValue = previousStateByte
 	}
 
-	_, _, err = ctx.TapCatalogApiConnector.UpdateImage(imageId, []models.Patch{patch})
+	_, _, err = ctx.TapCatalogApiConnector.UpdateImage(imageId, []catalogModels.Patch{patch})
 	return err
 }

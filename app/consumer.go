@@ -25,7 +25,7 @@ func StartConsumer(waitGroup *sync.WaitGroup) {
 }
 
 func handleMessage(msg amqp.Delivery) {
-	buildImageRequest := BuildImagePostRequest{}
+	buildImageRequest := models.BuildImagePostRequest{}
 	err := util.ReadJsonFromByte(msg.Body, &buildImageRequest)
 	if err != nil {
 		logger.Error(err.Error())

@@ -26,21 +26,6 @@ import (
 	"github.com/trustedanalytics/tap-catalog/models"
 )
 
-type ImageGetResponse struct {
-	ImageId    string `json:"id"`
-	Type       string `json:"type"`
-	State      string `json:"state"`
-	AuditTrail models.AuditTrail
-}
-
-type ImageStatePutRequest struct {
-	State string `json:"state"`
-}
-
-type BuildImagePostRequest struct {
-	ImageId string `json:"id"`
-}
-
 var (
 	ImagesMap = map[models.ImageType]string{
 		"JAVA":   "tap-base-java:java8-jessie",
