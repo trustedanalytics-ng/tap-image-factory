@@ -20,11 +20,13 @@ import (
 	"archive/tar"
 	"bytes"
 	"errors"
+	"io"
+
 	"github.com/docker/engine-api/client"
 	"github.com/docker/engine-api/types"
-	"github.com/trustedanalytics/tap-catalog/models"
 	"golang.org/x/net/context"
-	"io"
+
+	"github.com/trustedanalytics/tap-catalog/models"
 )
 
 const (
@@ -93,7 +95,7 @@ func baseImageFromType(imageType models.ImageType) (string, error) {
 	if !exists {
 		return "", errors.New("No such type - base image not detected.")
 	}
-	return GetHubAddressWithoutProtocol() + "/" + baseImage, nil
+	return GetImageWithHubAddressWithoutProtocol(baseImage), nil
 }
 
 func createDockerfile(imageType models.ImageType) (io.Reader, error) {

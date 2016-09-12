@@ -8,6 +8,20 @@ import (
 	brokerHttp "github.com/trustedanalytics/tap-go-common/http"
 )
 
+func (c *TapCatalogApiConnector) ListApplicationInstances(applicationId string) ([]models.Instance, int, error) {
+	connector := c.getApiConnector(fmt.Sprintf("%s/%s/%s/%s", c.Address, applications, applicationId, "instances"))
+	result := &[]models.Instance{}
+	status, err := brokerHttp.GetModel(connector, http.StatusOK, result)
+	return *result, status, err
+}
+
+func (c *TapCatalogApiConnector) ListServiceInstances(serviceId string) ([]models.Instance, int, error) {
+	connector := c.getApiConnector(fmt.Sprintf("%s/%s/%s/%s", c.Address, services, serviceId, "instances"))
+	result := &[]models.Instance{}
+	status, err := brokerHttp.GetModel(connector, http.StatusOK, result)
+	return *result, status, err
+}
+
 func (c *TapCatalogApiConnector) ListApplicationsInstances() ([]models.Instance, int, error) {
 	connector := c.getApiConnector(fmt.Sprintf("%s/%s/%s", c.Address, applications, "instances"))
 	result := &[]models.Instance{}
@@ -36,6 +50,13 @@ func (c *TapCatalogApiConnector) GetInstance(instanceId string) (models.Instance
 	return *result, status, err
 }
 
+func (c *TapCatalogApiConnector) GetInstanceBindings(instanceId string) ([]models.Instance, int, error) {
+	connector := c.getApiConnector(fmt.Sprintf("%s/%s/%s", c.Address, instanceBindings, instanceId))
+	result := &[]models.Instance{}
+	status, err := brokerHttp.GetModel(connector, http.StatusOK, result)
+	return *result, status, err
+}
+
 func (c *TapCatalogApiConnector) UpdateInstance(instanceId string, patches []models.Patch) (models.Instance, int, error) {
 	connector := c.getApiConnector(fmt.Sprintf("%s/%s/%s", c.Address, instances, instanceId))
 	result := &models.Instance{}
@@ -43,8 +64,15 @@ func (c *TapCatalogApiConnector) UpdateInstance(instanceId string, patches []mod
 	return *result, status, err
 }
 
+func (c *TapCatalogApiConnector) AddServiceBrokerInstance(serviceId string, instance models.Instance) (models.Instance, int, error) {
+	connector := c.getApiConnector(fmt.Sprintf("%s/%s/%s/instances?isServiceBroker=true", c.Address, services, serviceId))
+	result := &models.Instance{}
+	status, err := brokerHttp.PostModel(connector, instance, http.StatusCreated, result)
+	return *result, status, err
+}
+
 func (c *TapCatalogApiConnector) AddServiceInstance(serviceId string, instance models.Instance) (models.Instance, int, error) {
-	connector := c.getApiConnector(fmt.Sprintf("%s/%s/%s/instances", c.Address, services, serviceId))
+	connector := c.getApiConnector(fmt.Sprintf("%s/%s/%s/instances?isServiceBroker=false", c.Address, services, serviceId))
 	result := &models.Instance{}
 	status, err := brokerHttp.PostModel(connector, instance, http.StatusCreated, result)
 	return *result, status, err

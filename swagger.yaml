@@ -29,8 +29,8 @@ paths:
           schema:
               $ref: "#/definitions/BuildImageRequest"
       responses:
-        201:
-          description: Image built
+        202:
+          description: Image build process started
         400:
           description: Bad request. Provided wrong body.
           schema:

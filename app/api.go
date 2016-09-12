@@ -19,19 +19,19 @@ package app
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/gocraft/web"
 	"net/http"
+
+	"github.com/gocraft/web"
 
 	blobStoreApi "github.com/trustedanalytics/tap-blob-store/client"
 	catalogApi "github.com/trustedanalytics/tap-catalog/client"
-	"github.com/trustedanalytics/tap-catalog/models"
+	catalogModels "github.com/trustedanalytics/tap-catalog/models"
 	"github.com/trustedanalytics/tap-go-common/util"
 	"github.com/trustedanalytics/tap-image-factory/logger"
+	"github.com/trustedanalytics/tap-image-factory/models"
 )
 
-var (
-	logger = logger_wrapper.InitLogger("main")
-)
+var logger = logger_wrapper.InitLogger("app")
 
 type Context struct {
 	BlobStoreConnector     *blobStoreApi.TapBlobStoreApiConnector
@@ -39,94 +39,103 @@ type Context struct {
 	DockerConnector        *DockerClient
 }
 
-func (c *Context) SetupContext() {
-	tapBlobStoreConnector, err := GetBlobStoreConnector()
-	if err != nil {
-		logger.Panic(err)
-	}
-	c.BlobStoreConnector = tapBlobStoreConnector
+var ctx *Context
 
-	tapCatalogApiConnector, err := GetCatalogConnector()
-	if err != nil {
-		logger.Panic(err)
-	}
-	c.TapCatalogApiConnector = tapCatalogApiConnector
+func SetupContext() *Context {
+	if ctx == nil {
+		ctx = &Context{}
+		tapBlobStoreConnector, err := GetBlobStoreConnector()
+		if err != nil {
+			logger.Panic(err)
+		}
+		ctx.BlobStoreConnector = tapBlobStoreConnector
 
-	dockerClient, err := NewDockerClient()
-	if err != nil {
-		logger.Panic(err)
+		tapCatalogApiConnector, err := GetCatalogConnector()
+		if err != nil {
+			logger.Panic(err)
+		}
+		ctx.TapCatalogApiConnector = tapCatalogApiConnector
+
+		dockerClient, err := NewDockerClient()
+		if err != nil {
+			logger.Panic(err)
+		}
+		ctx.DockerConnector = dockerClient
 	}
-	c.DockerConnector = dockerClient
+	return ctx
 }
 func (c *Context) BuildImage(rw web.ResponseWriter, req *web.Request) {
-	req_json := BuildImagePostRequest{}
-	err := util.ReadJson(req, &req_json)
-	if err != nil {
-		logger.Error(err.Error())
-		rw.WriteHeader(400)
-		return
-	}
-	imgDetails, _, err := c.TapCatalogApiConnector.GetImage(req_json.ImageId)
-	if err != nil {
-		logger.Error(err.Error())
-		rw.WriteHeader(500)
+	buildRequest := models.BuildImagePostRequest{}
+	if err := util.ReadJson(req, &buildRequest); err != nil {
+		util.Respond400(rw, err)
 		return
 	}
 
-	buffer := bytes.Buffer{}
-	err = c.BlobStoreConnector.GetBlob(imgDetails.Id, &buffer)
-	if err != nil {
-		logger.Error(err.Error())
-		rw.WriteHeader(500)
-		return
-	}
-	marshalledValue, _ := json.Marshal("BUILDING")
-	patches := []models.Patch{{Operation: models.OperationUpdate, Field: "State", Value: marshalledValue}}
-	c.TapCatalogApiConnector.UpdateImage(imgDetails.Id, patches)
-	if err != nil {
-		logger.Error(err.Error())
-		rw.WriteHeader(500)
-		return
-	}
-
-	tag := GetHubAddressWithoutProtocol() + "/" + imgDetails.Id
-
-	err = c.DockerConnector.CreateImage(bytes.NewReader(buffer.Bytes()), imgDetails.Type, tag)
-	if err != nil {
-		logger.Error(err.Error())
-		rw.WriteHeader(500)
-		return
-	}
-	err = c.DockerConnector.PushImage(tag)
-	if err != nil {
-		logger.Error(err.Error())
-		rw.WriteHeader(500)
-		return
-	}
-	marshalledValue, _ = json.Marshal("READY")
-	patches = []models.Patch{{Operation: models.OperationUpdate, Field: "State", Value: marshalledValue}}
-	c.TapCatalogApiConnector.UpdateImage(imgDetails.Id, patches)
-	if err != nil {
-		logger.Error(err.Error())
-		rw.WriteHeader(500)
-		return
-	}
-	status, err := c.BlobStoreConnector.DeleteBlob(imgDetails.Id)
-	if err != nil {
-		logger.Error(err.Error())
-		rw.Write([]byte(err.Error()))
-		rw.WriteHeader(500)
-		return
-	}
-	if status != http.StatusNoContent {
-		logger.Warning("Blob removal failed. Actual status %v", status)
-	}
-
-	rw.WriteHeader(201)
+	go func() {
+		if err := BuildAndPushImage(buildRequest); err != nil {
+			logger.Error("Building image error:", err)
+		}
+	}()
+	util.WriteJson(rw, "", http.StatusAccepted)
 }
 
-func (c *Context) updateImageWithState(imageId, state string) {
-	marshalledValue, _ := json.Marshal(state)
-	patches := []models.Patch{{Operation: models.OperationUpdate, Field: "State", Value: marshalledValue}}
-	c.TapCatalogApiConnector.UpdateImage(imageId, patches)
+func BuildAndPushImage(buildRequest models.BuildImagePostRequest) error {
+	if err := updateImageWithState(buildRequest.ImageId, "BUILDING", "PENDING"); err != nil {
+		return err
+	} else {
+		imgDetails, _, err := ctx.TapCatalogApiConnector.GetImage(buildRequest.ImageId)
+		if err != nil {
+			updateImageWithState(buildRequest.ImageId, "ERROR", "")
+			return err
+		}
+
+		buffer := bytes.Buffer{}
+		if err = ctx.BlobStoreConnector.GetBlob(imgDetails.Id, &buffer); err != nil {
+			updateImageWithState(buildRequest.ImageId, "ERROR", "")
+			return err
+		}
+
+		tag := GetImageWithHubAddressWithoutProtocol(imgDetails.Id)
+		if err = ctx.DockerConnector.CreateImage(bytes.NewReader(buffer.Bytes()), imgDetails.Type, tag); err != nil {
+			updateImageWithState(buildRequest.ImageId, "ERROR", "")
+			return err
+		}
+
+		if err = ctx.DockerConnector.PushImage(tag); err != nil {
+			updateImageWithState(buildRequest.ImageId, "ERROR", "")
+			return err
+		}
+
+		updateImageWithState(buildRequest.ImageId, "READY", "")
+
+		status, err := ctx.BlobStoreConnector.DeleteBlob(imgDetails.Id)
+		if err != nil {
+			return err
+
+		}
+		if status != http.StatusNoContent {
+			logger.Warning("Blob removal failed. Actual status %v", status)
+		}
+		logger.Info("Image build SUCCESS! Id:", buildRequest.ImageId)
+		return nil
+	}
+}
+
+func updateImageWithState(imageId, state, previousState string) error {
+	marshalledValue, err := json.Marshal(state)
+	if err != nil {
+		return err
+	}
+
+	patch := catalogModels.Patch{Operation: catalogModels.OperationUpdate, Field: "State", Value: marshalledValue}
+	if previousState != "" {
+		previousStateByte, err := json.Marshal(previousState)
+		if err != nil {
+			return err
+		}
+		patch.PrevValue = previousStateByte
+	}
+
+	_, _, err = ctx.TapCatalogApiConnector.UpdateImage(imageId, []catalogModels.Patch{patch})
+	return err
 }

@@ -195,64 +195,76 @@
 			"revisionTime": "2016-03-11T21:55:03Z"
 		},
 		{
-			"checksumSHA1": "X/vMXvMLEwkB/RptSd4TnvfSohs=",
+			"checksumSHA1": "TcNqBF4ixmMvCcHqHBzu2M54ffM=",
 			"path": "github.com/trustedanalytics/tap-blob-store/client",
-			"revision": "401ff2036fa1a63dd95e30011622bd47328a0716",
-			"revisionTime": "2016-08-19T13:35:51Z"
+			"revision": "bed09c6c5326b4b1099f0406c3efd853b15721d4",
+			"revisionTime": "2016-08-31T21:51:35Z"
 		},
 		{
-			"checksumSHA1": "T+HkT51gQletsGX0tYMvkgNqPDY=",
+			"checksumSHA1": "tyEaZNmC1tzUua9RG1UfO8DF4KI=",
 			"path": "github.com/trustedanalytics/tap-catalog/client",
-			"revision": "bc8065750830ba5cd469f70ac18240eda22c67b5",
-			"revisionTime": "2016-08-19T07:53:47Z"
+			"revision": "2c01a78c22e58a6d609dfefed0b7204aa55719df",
+			"revisionTime": "2016-09-09T14:22:49Z"
 		},
 		{
-			"checksumSHA1": "05UT2j6zwYv1aNbMQ0yunk58+QA=",
+			"checksumSHA1": "4JyA/0HNtqBgag2nzgKPf/KjllQ=",
 			"path": "github.com/trustedanalytics/tap-catalog/models",
-			"revision": "20f65d93e812f9494827765992c7fe8c18a3ad74",
-			"revisionTime": "2016-08-08T10:58:18Z"
+			"revision": "2c01a78c22e58a6d609dfefed0b7204aa55719df",
+			"revisionTime": "2016-09-09T14:22:49Z"
 		},
 		{
-			"checksumSHA1": "FHH5vvuyglwKP3h05rYJdf29KQg=",
+			"checksumSHA1": "bJJyTKEKJXJkr3VCBLxaUtPam8E=",
 			"path": "github.com/trustedanalytics/tap-go-common/http",
-			"revision": "447b84567c96c43e6e2ef79e4f97be545f11fa0d",
-			"revisionTime": "2016-08-17T13:54:27Z"
+			"revision": "67bbbdfb709ce32d375b1521585e2c9477acbddf",
+			"revisionTime": "2016-09-07T10:22:09Z"
 		},
 		{
-			"checksumSHA1": "RVbaAnp5aHoeOAwEiyyd7EHax+w=",
+			"checksumSHA1": "Ap8GciatUYbMeh2VM16jkpO7Xfk=",
 			"path": "github.com/trustedanalytics/tap-go-common/logger",
-			"revision": "ca34c9d2950032f078db7054a2206e7989a86ab3",
-			"revisionTime": "2016-08-08T10:11:52Z"
+			"revision": "67bbbdfb709ce32d375b1521585e2c9477acbddf",
+			"revisionTime": "2016-09-07T10:22:09Z"
 		},
 		{
-			"checksumSHA1": "uy1dWe+cZBlJvG9+8+8eCteT/IA=",
+			"checksumSHA1": "4ZsrAmqIgaa7digwlDdueVtIfew=",
+			"path": "github.com/trustedanalytics/tap-go-common/queue",
+			"revision": "67bbbdfb709ce32d375b1521585e2c9477acbddf",
+			"revisionTime": "2016-09-07T10:22:09Z"
+		},
+		{
+			"checksumSHA1": "Un6IGysw7AywNCfsi2NDTuPV6CU=",
 			"path": "github.com/trustedanalytics/tap-go-common/util",
-			"revision": "ca34c9d2950032f078db7054a2206e7989a86ab3",
-			"revisionTime": "2016-08-08T10:11:52Z"
+			"revision": "67bbbdfb709ce32d375b1521585e2c9477acbddf",
+			"revisionTime": "2016-09-07T10:22:09Z"
 		},
 		{
-			"checksumSHA1": "pd8Lq/ZC+gZSw3eKN6WRdqBZJdg=",
+			"checksumSHA1": "+4gcglG6K57GImPY+iyQze/6ICk=",
 			"path": "github.com/trustedanalytics/tap-image-factory",
-			"revision": "fbef80dc7da47c3106f52bf27c237f19d9d22372",
-			"revisionTime": "2016-08-04T11:52:57Z"
+			"revision": "71d7d2b53d7ba3d90439df37935cb74d4eaa26cb",
+			"revisionTime": "2016-09-12T06:50:42Z"
 		},
 		{
-			"checksumSHA1": "q8KCnwZX1FIDr9X97pXDIExyTRo=",
+			"checksumSHA1": "YcHgWrv9Fz0AyZUh6gzjmWxNJ4M=",
 			"path": "github.com/trustedanalytics/tap-image-factory/app",
-			"revision": "fbef80dc7da47c3106f52bf27c237f19d9d22372",
-			"revisionTime": "2016-08-04T11:52:57Z"
+			"revision": "71d7d2b53d7ba3d90439df37935cb74d4eaa26cb",
+			"revisionTime": "2016-09-12T06:50:42Z"
 		},
 		{
-			"checksumSHA1": "96UtIv1dNcT9mo+5+y+avPYoKoI=",
+			"checksumSHA1": "OQBh6GRZYtmGnTTGJHvcPqfpUdQ=",
 			"path": "github.com/trustedanalytics/tap-image-factory/client",
-			"revision": "fbef80dc7da47c3106f52bf27c237f19d9d22372",
-			"revisionTime": "2016-08-04T11:52:57Z"
+			"revision": "71d7d2b53d7ba3d90439df37935cb74d4eaa26cb",
+			"revisionTime": "2016-09-12T06:50:42Z"
 		},
 		{
-			"checksumSHA1": "U8/9eBKkILjtMc9rJb2A3kIrEY4=",
+			"checksumSHA1": "MCxIzF0Xe8xzXlEMW9ON4YHnn20=",
 			"path": "github.com/trustedanalytics/tap-image-factory/logger",
-			"revision": "fbef80dc7da47c3106f52bf27c237f19d9d22372",
-			"revisionTime": "2016-08-04T11:52:57Z"
+			"revision": "71d7d2b53d7ba3d90439df37935cb74d4eaa26cb",
+			"revisionTime": "2016-09-12T06:50:42Z"
+		},
+		{
+			"checksumSHA1": "xNjKdQR3GKHHtuj5inEIo8Juj9w=",
+			"path": "github.com/trustedanalytics/tap-image-factory/models",
+			"revision": "71d7d2b53d7ba3d90439df37935cb74d4eaa26cb",
+			"revisionTime": "2016-09-12T06:50:42Z"
 		},
 		{
 			"checksumSHA1": "9jjO5GjLa0XF/nfWihF02RoH4qc=",

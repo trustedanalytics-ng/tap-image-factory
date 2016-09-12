@@ -21,6 +21,7 @@ import (
 
 	blobStoreApi "github.com/trustedanalytics/tap-blob-store/client"
 	catalogApi "github.com/trustedanalytics/tap-catalog/client"
+	"github.com/trustedanalytics/tap-go-common/util"
 )
 
 type BlobStoreApi interface {
@@ -31,7 +32,7 @@ type BlobStoreApi interface {
 }
 
 func GetCatalogConnector() (*catalogApi.TapCatalogApiConnector, error) {
-	address := GetCatalogAddressWithoutProtocol()
+	address := util.GetAddressFromKubernetesEnvs("CATALOG")
 	if os.Getenv("CATALOG_SSL_CERT_FILE_LOCATION") != "" {
 		return catalogApi.NewTapCatalogApiWithSSLAndBasicAuth(
 			"https://"+address,
@@ -51,7 +52,7 @@ func GetCatalogConnector() (*catalogApi.TapCatalogApiConnector, error) {
 }
 
 func GetBlobStoreConnector() (*blobStoreApi.TapBlobStoreApiConnector, error) {
-	address := GetBlobStoreAddress()
+	address := util.GetAddressFromKubernetesEnvs("BLOB_STORE")
 	if os.Getenv("BLOB_STORE_SSL_CERT_FILE_LOCATION") != "" {
 		return blobStoreApi.NewTapBlobStoreApiWithSSLAndBasicAuth(
 			"https://"+address,
