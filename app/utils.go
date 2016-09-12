@@ -35,13 +35,13 @@ var (
 	}
 )
 
-func GetHubAddressWithoutProtocol() string {
+func GetImageWithHubAddressWithoutProtocol(image string) string {
 	address := os.Getenv("HUB_ADDRESS")
 	split := strings.SplitN(address, "://", 2)
 	if len(split) == 2 {
-		return split[1]
+		return split[1] + "/" + image
 	}
-	return address
+	return address + "/" + image
 }
 
 func StreamToByte(stream io.Reader) ([]byte, error) {

@@ -95,7 +95,7 @@ func baseImageFromType(imageType models.ImageType) (string, error) {
 	if !exists {
 		return "", errors.New("No such type - base image not detected.")
 	}
-	return GetHubAddressWithoutProtocol() + "/" + baseImage, nil
+	return GetImageWithHubAddressWithoutProtocol(baseImage), nil
 }
 
 func createDockerfile(imageType models.ImageType) (io.Reader, error) {
