@@ -31,7 +31,8 @@ var (
 		"JAVA":   "tap-base-java:java8-jessie",
 		"GO":     "tap-base-binary:binary-jessie",
 		"NODEJS": "tap-base-node:node4.4-jessie",
-		"PYTHON": "tap-base-python:python2.7-jessie",
+		"PYTHON2.7": "tap-base-python:python2.7-jessie",
+		"PYTHON3.4": "tap-base-python:python3.4",
 	}
 )
 
