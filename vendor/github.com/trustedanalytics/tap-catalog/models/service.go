@@ -4,15 +4,8 @@ import "reflect"
 
 func init() {
 	RegisterType("Plans", reflect.TypeOf(ServicePlan{}))
+	RegisterType("Dependencies", reflect.TypeOf(ServiceDependency{}))
 }
-
-const (
-	ENV_SOURCE_OFFERING_ID       = "source_offering_id"
-	ENV_BROKER_SHORT_INSTANCE_ID = "broker_short_instance_id"
-	ENV_BROKER_INSTANCE_ID       = "broker_instance_id"
-	ENV_PLAN_ID                  = "plan_id"
-	ENV_SOURCE_PLAN_ID_PREFIX    = "source_plan_id-"
-)
 
 type Service struct {
 	Id          string        `json:"id"`
@@ -27,11 +20,20 @@ type Service struct {
 }
 
 type ServicePlan struct {
-	Id          string     `json:"id"`
-	Name        string     `json:"name"`
-	Description string     `json:"description"`
-	Cost        string     `json:"cost"`
-	AuditTrail  AuditTrail `json:"auditTrail"`
+	Id           string              `json:"id"`
+	Name         string              `json:"name"`
+	Description  string              `json:"description"`
+	Cost         string              `json:"cost"`
+	Dependencies []ServiceDependency `json:"dependencies"`
+	AuditTrail   AuditTrail          `json:"auditTrail"`
+}
+
+type ServiceDependency struct {
+	Id          string `json:"id"`
+	PlanName    string `json:"plan_name"`
+	PlanId      string `json:"plan_id"`
+	ServiceName string `json:"service_name"`
+	ServiceId   string `json:"service_id"`
 }
 
 type ServiceState string
@@ -41,7 +43,3 @@ const (
 	ServiceStateReady     ServiceState = "READY"
 	ServiceStateOffline   ServiceState = "OFFLINE"
 )
-
-func GetPrefixedSourcePlanName(planName string) string {
-	return ENV_SOURCE_PLAN_ID_PREFIX + planName
-}

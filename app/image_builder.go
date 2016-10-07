@@ -29,8 +29,16 @@ import (
 	"github.com/trustedanalytics/tap-catalog/models"
 )
 
-const (
-	artifactFileName = "artifact.tar"
+var (
+	blobTypeFileNameMap = map[models.BlobType]string {
+		models.BlobTypeTarGz: "artifact.tar.gz",
+		models.BlobTypeJar: "app.jar",
+		models.BlobTypeExec: "app",
+	}
+	blobTypeRunCommandMap = map[models.BlobType]string {
+		models.BlobTypeJar: "#!/bin/bash \njava -jar " + blobTypeFileNameMap[models.BlobTypeJar],
+		models.BlobTypeExec: "#!/bin/bash \n./" + blobTypeFileNameMap[models.BlobTypeExec],
+	}
 )
 
 type DockerClient struct {
@@ -38,7 +46,7 @@ type DockerClient struct {
 }
 
 type ImageBuilder interface {
-	CreateImage(artifact io.Reader, baseImage, imageId string) error
+	CreateImage(artifact io.Reader, baseImage, blobType models.BlobType, imageId string) error
 	buildImage(buildContext io.Reader, imageId string) error
 	TagImage(imageId, tag string) error
 	PushImage(tag string) error
@@ -53,12 +61,12 @@ func NewDockerClient() (*DockerClient, error) {
 	return &dockerClient, nil
 }
 
-func (d *DockerClient) CreateImage(artifact io.Reader, imageType models.ImageType, tag string) error {
-	dockerfile, err := createDockerfile(imageType)
+func (d *DockerClient) CreateImage(artifact io.Reader, imageType models.ImageType, blobType models.BlobType, tag string) error {
+	dockerfile, err := createDockerfile(imageType, blobType)
 	if err != nil {
 		return err
 	}
-	buildContext, err := createBuildContext(artifact, dockerfile)
+	buildContext, err := createBuildContext(artifact, dockerfile, blobType)
 	if err != nil {
 		return err
 	}
@@ -98,14 +106,17 @@ func baseImageFromType(imageType models.ImageType) (string, error) {
 	return GetImageWithHubAddressWithoutProtocol(baseImage), nil
 }
 
-func createDockerfile(imageType models.ImageType) (io.Reader, error) {
+func createDockerfile(imageType models.ImageType, blobType models.BlobType) (io.Reader, error) {
 	baseImage, err := baseImageFromType(imageType)
 	if err != nil {
 		return nil, err
 	}
 	buf := new(bytes.Buffer)
 	buf.WriteString("FROM " + baseImage + "\n")
-	buf.WriteString("ADD " + artifactFileName + " /root\n")
+	buf.WriteString("ADD " + blobTypeFileNameMap[blobType] + " /root\n")
+	if blobType != models.BlobTypeTarGz {
+		buf.WriteString("ADD run.sh /root\n")
+	}
 	buf.WriteString("ENV PORT 80\n")
 	buf.WriteString("EXPOSE $PORT\n")
 	buf.WriteString("WORKDIR /root\n")
@@ -113,7 +124,7 @@ func createDockerfile(imageType models.ImageType) (io.Reader, error) {
 	return buf, nil
 }
 
-func createBuildContext(imageArtifact io.Reader, dockerfile io.Reader) (io.Reader, error) {
+func createBuildContext(imageArtifact io.Reader, dockerfile io.Reader, blobType models.BlobType) (io.Reader, error) {
 	imageArtifactBytes, err := StreamToByte(imageArtifact)
 	if err != nil {
 		return nil, err
@@ -126,7 +137,7 @@ func createBuildContext(imageArtifact io.Reader, dockerfile io.Reader) (io.Reade
 	buf := new(bytes.Buffer)
 	tw := tar.NewWriter(buf)
 
-	err = writeToTar(artifactFileName, imageArtifactBytes, tw)
+	err = writeToTar(blobTypeFileNameMap[blobType], imageArtifactBytes, tw)
 	if err != nil {
 		return nil, err
 	}
@@ -134,6 +145,15 @@ func createBuildContext(imageArtifact io.Reader, dockerfile io.Reader) (io.Reade
 	if err != nil {
 		return nil, err
 	}
+
+	if blobType != models.BlobTypeTarGz {
+		runShBytes := []byte(blobTypeRunCommandMap[blobType])
+		err = writeToTar("run.sh", runShBytes, tw)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	tw.Close()
 
 	return buf, nil

@@ -96,7 +96,7 @@ func BuildAndPushImage(buildRequest models.BuildImagePostRequest) error {
 		}
 
 		tag := GetImageWithHubAddressWithoutProtocol(imgDetails.Id)
-		if err = ctx.DockerConnector.CreateImage(bytes.NewReader(buffer.Bytes()), imgDetails.Type, tag); err != nil {
+		if err = ctx.DockerConnector.CreateImage(bytes.NewReader(buffer.Bytes()), imgDetails.Type, imgDetails.BlobType, tag); err != nil {
 			updateImageWithState(buildRequest.ImageId, "ERROR", "")
 			return err
 		}

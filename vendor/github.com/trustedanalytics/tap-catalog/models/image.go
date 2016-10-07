@@ -7,6 +7,7 @@ const IMAGE_ID_PREFIX = "image-"
 type Image struct {
 	Id         string     `json:"id"`
 	Type       ImageType  `json:"type"`
+	BlobType   BlobType   `json:"blobType"`
 	State      ImageState `json:"state"`
 	AuditTrail AuditTrail `json:"auditTrail"`
 }
@@ -18,6 +19,14 @@ const (
 	ImageTypeGo     ImageType = "GO"
 	ImageTypeNodeJs ImageType = "NODEJS"
 	ImageTypePython ImageType = "PYTHON"
+)
+
+type BlobType string
+
+const (
+	BlobTypeTarGz BlobType = "TARGZ"
+	BlobTypeJar   BlobType = "JAR"
+	BlobTypeExec  BlobType = "EXEC"
 )
 
 type ImageState string
@@ -34,7 +43,7 @@ func IsApplicationInstance(imageId string) bool {
 }
 
 func GetApplicationId(imageId string) string {
-	return strings.TrimLeft(imageId, IMAGE_ID_PREFIX)
+	return strings.TrimPrefix(imageId, IMAGE_ID_PREFIX)
 }
 
 func GenerateImageId(applicationId string) string {
