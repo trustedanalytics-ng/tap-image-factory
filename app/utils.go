@@ -22,18 +22,6 @@ import (
 	"io"
 	"os"
 	"strings"
-
-	"github.com/trustedanalytics/tap-catalog/models"
-)
-
-var (
-	ImagesMap = map[models.ImageType]string{
-		"JAVA":   "tap-base-java:java8-jessie",
-		"GO":     "tap-base-binary:binary-jessie",
-		"NODEJS": "tap-base-node:node4.4-jessie",
-		"PYTHON2.7": "tap-base-python:python2.7-jessie",
-		"PYTHON3.4": "tap-base-python:python3.4",
-	}
 )
 
 func GetImageWithHubAddressWithoutProtocol(image string) string {
