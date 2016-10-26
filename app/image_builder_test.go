@@ -17,12 +17,13 @@
 package app
 
 import (
-	"testing"
-
 	"archive/tar"
 	"bytes"
-	. "github.com/smartystreets/goconvey/convey"
 	"strings"
+	"testing"
+
+	. "github.com/smartystreets/goconvey/convey"
+
 	"github.com/trustedanalytics/tap-catalog/models"
 )
 
@@ -39,8 +40,8 @@ func TestCreateDockerfileForTarGzBlob(t *testing.T) {
 			dockerfileStr, _ := StreamToString(dockerfile)
 			dockerfileStringArray := strings.Split(dockerfileStr, "\n")
 
-			So(dockerfileStringArray[0], ShouldEqual, "FROM " + GetImageWithHubAddressWithoutProtocol(testBaseImage))
-			So(dockerfileStringArray[1], ShouldEqual, "ADD " + blobTypeFileNameMap[models.BlobTypeTarGz]+" /root")
+			So(dockerfileStringArray[0], ShouldEqual, "FROM "+GetImageWithHubAddressWithoutProtocol(testBaseImage))
+			So(dockerfileStringArray[1], ShouldEqual, "ADD "+blobTypeFileNameMap[models.BlobTypeTarGz]+" /root")
 			So(dockerfileStringArray[2], ShouldEqual, "ENV PORT 80")
 			So(dockerfileStringArray[3], ShouldEqual, "EXPOSE $PORT")
 			So(dockerfileStringArray[4], ShouldEqual, "WORKDIR /root")
@@ -56,8 +57,8 @@ func TestCreateDockerfileForJarBlob(t *testing.T) {
 			dockerfileStr, _ := StreamToString(dockerfile)
 			dockerfileStringArray := strings.Split(dockerfileStr, "\n")
 
-			So(dockerfileStringArray[0], ShouldEqual, "FROM " + GetImageWithHubAddressWithoutProtocol(testBaseImage))
-			So(dockerfileStringArray[1], ShouldEqual, "ADD " + blobTypeFileNameMap[models.BlobTypeJar]+" /root")
+			So(dockerfileStringArray[0], ShouldEqual, "FROM "+GetImageWithHubAddressWithoutProtocol(testBaseImage))
+			So(dockerfileStringArray[1], ShouldEqual, "ADD "+blobTypeFileNameMap[models.BlobTypeJar]+" /root")
 			So(dockerfileStringArray[2], ShouldEqual, "ADD run.sh /root")
 			So(dockerfileStringArray[3], ShouldEqual, "ENV PORT 80")
 			So(dockerfileStringArray[4], ShouldEqual, "EXPOSE $PORT")
@@ -69,7 +70,7 @@ func TestCreateDockerfileForJarBlob(t *testing.T) {
 
 func TestCreateBuildContextForTarGzBlob(t *testing.T) {
 	testImageArtifact := bytes.NewBufferString(testImageArtifactContent)
-	testDockerfile    := bytes.NewBufferString(testDockerfileContent)
+	testDockerfile := bytes.NewBufferString(testDockerfileContent)
 	Convey("Test CreateBuildContext", t, func() {
 		Convey("Context should contains proper files", func() {
 			context, err := createBuildContext(testImageArtifact, testDockerfile, models.BlobTypeTarGz)
@@ -92,7 +93,7 @@ func TestCreateBuildContextForTarGzBlob(t *testing.T) {
 
 func TestCreateBuildContextForJarBlob(t *testing.T) {
 	testImageArtifact := bytes.NewBufferString(testImageArtifactContent)
-	testDockerfile    := bytes.NewBufferString(testDockerfileContent)
+	testDockerfile := bytes.NewBufferString(testDockerfileContent)
 	Convey("Test CreateBuildContext", t, func() {
 		Convey("Context should contains proper files", func() {
 			context, err := createBuildContext(testImageArtifact, testDockerfile, models.BlobTypeJar)
