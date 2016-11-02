@@ -80,33 +80,33 @@ func (c *Context) BuildImage(rw web.ResponseWriter, req *web.Request) {
 }
 
 func BuildAndPushImage(buildRequest models.BuildImagePostRequest) error {
-	if err := updateImageWithState(buildRequest.ImageId, "BUILDING", "PENDING"); err != nil {
+	if err := updateImageWithState(buildRequest.ImageId, catalogModels.ImageStateBuilding, catalogModels.ImageStatePending); err != nil {
 		return err
 	} else {
 		imgDetails, _, err := ctx.TapCatalogApiConnector.GetImage(buildRequest.ImageId)
 		if err != nil {
-			updateImageWithState(buildRequest.ImageId, "ERROR", "")
+			updateImageWithState(buildRequest.ImageId, catalogModels.ImageStateError, "")
 			return err
 		}
 
 		buffer := bytes.Buffer{}
 		if err = ctx.BlobStoreConnector.GetBlob(imgDetails.Id, &buffer); err != nil {
-			updateImageWithState(buildRequest.ImageId, "ERROR", "")
+			updateImageWithState(buildRequest.ImageId, catalogModels.ImageStateError, "")
 			return err
 		}
 
 		tag := GetImageWithHubAddressWithoutProtocol(imgDetails.Id)
 		if err = ctx.DockerConnector.CreateImage(bytes.NewReader(buffer.Bytes()), imgDetails.Type, imgDetails.BlobType, tag); err != nil {
-			updateImageWithState(buildRequest.ImageId, "ERROR", "")
+			updateImageWithState(buildRequest.ImageId, catalogModels.ImageStateError, "")
 			return err
 		}
 
 		if err = ctx.DockerConnector.PushImage(tag); err != nil {
-			updateImageWithState(buildRequest.ImageId, "ERROR", "")
+			updateImageWithState(buildRequest.ImageId, catalogModels.ImageStateError, "")
 			return err
 		}
 
-		updateImageWithState(buildRequest.ImageId, "READY", "")
+		updateImageWithState(buildRequest.ImageId, catalogModels.ImageStateReady, "")
 
 		status, err := ctx.BlobStoreConnector.DeleteBlob(imgDetails.Id)
 		if err != nil {
@@ -121,7 +121,7 @@ func BuildAndPushImage(buildRequest models.BuildImagePostRequest) error {
 	}
 }
 
-func updateImageWithState(imageId, state, previousState string) error {
+func updateImageWithState(imageId string, state catalogModels.ImageState, previousState catalogModels.ImageState) error {
 	marshalledValue, err := json.Marshal(state)
 	if err != nil {
 		return err

@@ -24,11 +24,12 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 
-	"github.com/trustedanalytics/tap-catalog/models"
+	catalogModels "github.com/trustedanalytics/tap-catalog/models"
+	imageFactoryModels "github.com/trustedanalytics/tap-image-factory/models"
 )
 
 var (
-	testBaseImage            = ImagesMap["JAVA"]
+	testBaseImage            = imageFactoryModels.ImagesMap[catalogModels.ImageTypeJava]
 	testImageArtifactContent = "Test artifact file content"
 	testDockerfileContent    = "FROM " + testBaseImage + "\n" + "RUN mkdir /test_dir\n" + "CMD [~/run.sh]"
 )
@@ -36,12 +37,12 @@ var (
 func TestCreateDockerfileForTarGzBlob(t *testing.T) {
 	Convey("Test CreateDockerfile", t, func() {
 		Convey("Dockerfile should contains proper lines", func() {
-			dockerfile, _ := createDockerfile("JAVA", models.BlobTypeTarGz)
+			dockerfile, _ := createDockerfile("JAVA", catalogModels.BlobTypeTarGz)
 			dockerfileStr, _ := StreamToString(dockerfile)
 			dockerfileStringArray := strings.Split(dockerfileStr, "\n")
 
 			So(dockerfileStringArray[0], ShouldEqual, "FROM "+GetImageWithHubAddressWithoutProtocol(testBaseImage))
-			So(dockerfileStringArray[1], ShouldEqual, "ADD "+blobTypeFileNameMap[models.BlobTypeTarGz]+" /root")
+			So(dockerfileStringArray[1], ShouldEqual, "ADD "+blobTypeFileNameMap[catalogModels.BlobTypeTarGz]+" /root")
 			So(dockerfileStringArray[2], ShouldEqual, "ENV PORT 80")
 			So(dockerfileStringArray[3], ShouldEqual, "EXPOSE $PORT")
 			So(dockerfileStringArray[4], ShouldEqual, "WORKDIR /root")
@@ -53,12 +54,12 @@ func TestCreateDockerfileForTarGzBlob(t *testing.T) {
 func TestCreateDockerfileForJarBlob(t *testing.T) {
 	Convey("Test CreateDockerfile", t, func() {
 		Convey("Dockerfile should contains proper lines", func() {
-			dockerfile, _ := createDockerfile("JAVA", models.BlobTypeJar)
+			dockerfile, _ := createDockerfile("JAVA", catalogModels.BlobTypeJar)
 			dockerfileStr, _ := StreamToString(dockerfile)
 			dockerfileStringArray := strings.Split(dockerfileStr, "\n")
 
 			So(dockerfileStringArray[0], ShouldEqual, "FROM "+GetImageWithHubAddressWithoutProtocol(testBaseImage))
-			So(dockerfileStringArray[1], ShouldEqual, "ADD "+blobTypeFileNameMap[models.BlobTypeJar]+" /root")
+			So(dockerfileStringArray[1], ShouldEqual, "ADD "+blobTypeFileNameMap[catalogModels.BlobTypeJar]+" /root")
 			So(dockerfileStringArray[2], ShouldEqual, "ADD run.sh /root")
 			So(dockerfileStringArray[3], ShouldEqual, "ENV PORT 80")
 			So(dockerfileStringArray[4], ShouldEqual, "EXPOSE $PORT")
@@ -73,12 +74,12 @@ func TestCreateBuildContextForTarGzBlob(t *testing.T) {
 	testDockerfile := bytes.NewBufferString(testDockerfileContent)
 	Convey("Test CreateBuildContext", t, func() {
 		Convey("Context should contains proper files", func() {
-			context, err := createBuildContext(testImageArtifact, testDockerfile, models.BlobTypeTarGz)
+			context, err := createBuildContext(testImageArtifact, testDockerfile, catalogModels.BlobTypeTarGz)
 			So(err, ShouldBeNil)
 			tr := tar.NewReader(context)
 			hdr, err := tr.Next()
 
-			So(hdr.Name, ShouldEqual, blobTypeFileNameMap[models.BlobTypeTarGz])
+			So(hdr.Name, ShouldEqual, blobTypeFileNameMap[catalogModels.BlobTypeTarGz])
 			trStr, _ := StreamToString(tr)
 			So(trStr, ShouldEqual, "Test artifact file content")
 
@@ -96,12 +97,12 @@ func TestCreateBuildContextForJarBlob(t *testing.T) {
 	testDockerfile := bytes.NewBufferString(testDockerfileContent)
 	Convey("Test CreateBuildContext", t, func() {
 		Convey("Context should contains proper files", func() {
-			context, err := createBuildContext(testImageArtifact, testDockerfile, models.BlobTypeJar)
+			context, err := createBuildContext(testImageArtifact, testDockerfile, catalogModels.BlobTypeJar)
 			So(err, ShouldBeNil)
 			tr := tar.NewReader(context)
 			hdr, err := tr.Next()
 
-			So(hdr.Name, ShouldEqual, blobTypeFileNameMap[models.BlobTypeJar])
+			So(hdr.Name, ShouldEqual, blobTypeFileNameMap[catalogModels.BlobTypeJar])
 			trStr, _ := StreamToString(tr)
 			So(trStr, ShouldEqual, "Test artifact file content")
 
@@ -115,7 +116,7 @@ func TestCreateBuildContextForJarBlob(t *testing.T) {
 
 			So(hdr.Name, ShouldEqual, "run.sh")
 			trStr, _ = StreamToString(tr)
-			So(trStr, ShouldEqual, blobTypeRunCommandMap[models.BlobTypeJar])
+			So(trStr, ShouldEqual, blobTypeRunCommandMap[catalogModels.BlobTypeJar])
 		})
 	})
 }
