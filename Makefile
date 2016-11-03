@@ -12,13 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
-APP_DIR_LIST=$(shell go list ./... | grep -v /vendor/)
+APDIR=$(shell go list ./... | grep -v /vendor/)
 GOBIN=$(GOPATH)/bin
 
 build:
-	CGO_ENABLED=0 go install -tags netgo ${APP_DIR_LIST}
-	go fmt $(APP_DIR_LIST)
+	CGO_ENABLED=0 go install -tags netgo ${APDIR}
+	go fmt $(APDIR)
 
 run: build
 	${GOPATH}/bin/tap-image-factory
@@ -63,7 +62,7 @@ verify_gopath:
 		exit 1 ;\
 	fi
 
-test: verify_gopath
+tests: verify_gopath
 	go test --cover $(APP_DIR_LIST)
 	
 prepare_dirs:

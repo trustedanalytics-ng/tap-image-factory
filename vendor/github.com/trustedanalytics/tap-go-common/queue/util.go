@@ -18,6 +18,7 @@ package queue
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/streadway/amqp"
 
@@ -46,10 +47,9 @@ func GetConnectionChannel() (*amqp.Channel, *amqp.Connection) {
 }
 
 func getQueueConnectionString() string {
-	queueNameInEnvs := "QUEUE"
-	address, _ := util.GetConnectionAddressFromEnvs(queueNameInEnvs)
-	user, pass, _ := util.GetConnectionCredentialsFromEnvs(queueNameInEnvs)
-
+	address := util.GetAddressFromKubernetesEnvs("QUEUE")
+	user := os.Getenv("QUEUE_USER")
+	pass := os.Getenv("QUEUE_PASS")
 	return fmt.Sprintf("amqp://%v:%v@%v/", user, pass, address)
 }
 
