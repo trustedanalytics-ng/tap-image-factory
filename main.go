@@ -16,9 +16,9 @@
 package main
 
 import (
-	"github.com/gocraft/web"
-	"os"
 	"sync"
+
+	"github.com/gocraft/web"
 
 	httpGoCommon "github.com/trustedanalytics/tap-go-common/http"
 	"github.com/trustedanalytics/tap-go-common/util"
@@ -47,12 +47,7 @@ func main() {
 	v1AliasRouter := router.Subrouter(context, "/api/v1.0")
 	route(v1AliasRouter, &context)
 
-	if os.Getenv("IMAGE_FACTORY_SSL_CERT_FILE_LOCATION") != "" {
-		httpGoCommon.StartServerTLS(os.Getenv("IMAGE_FACTORY_SSL_CERT_FILE_LOCATION"),
-			os.Getenv("IMAGE_FACTORY_SSL_CERT_FILE_LOCATION"), router)
-	} else {
-		httpGoCommon.StartServer(router)
-	}
+	httpGoCommon.StartServer(router)
 	/* REST API handling */
 }
 

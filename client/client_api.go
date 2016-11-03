@@ -36,14 +36,6 @@ func NewTapImageFactoryApiWithBasicAuth(address, username, password string) (*Ta
 	return &TapImageFactoryApiConnector{address, username, password, client}, nil
 }
 
-func NewTapImageFactoryApiWithSSLAndBasicAuth(address, username, password, certPemFile, keyPemFile, caPemFile string) (*TapImageFactoryApiConnector, error) {
-	client, _, err := brokerHttp.GetHttpClientWithCertAndCaFromFile(certPemFile, keyPemFile, caPemFile)
-	if err != nil {
-		return nil, err
-	}
-	return &TapImageFactoryApiConnector{address, username, password, client}, nil
-}
-
 type TapImageFactoryApiConnector struct {
 	Address  string
 	Username string
