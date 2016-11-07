@@ -22,6 +22,7 @@ import (
 	"errors"
 	"io"
 	"encoding/json"
+	"fmt"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
@@ -80,12 +81,12 @@ func (d *DockerClient) buildImage(buildContext io.Reader, tag string) error {
 	buildOptions := types.ImageBuildOptions{Tags: []string{tag}}
 	response, err := d.cli.ImageBuild(context.Background(), buildContext, buildOptions)
 	if err != nil {
-		return errors.New("Couldn't build docker image, error: " + err.Error())
+		return errors.New(fmt.Sprintf("Couldn't build docker image, error: %s", err.Error()))
 	}
 	responseBody, err := parseDockerResponse(response)
 	logger.Info(responseBody)
 	if err != nil {
-		return errors.New("Couldn't build docker image, error: " + err.Error())
+		return errors.New(fmt.Sprintf("Couldn't build docker image, error: %s", err.Error()))
 	}
 	return nil
 }
@@ -184,7 +185,7 @@ func createHeader(fileName string, fileSize int64) *tar.Header {
 }
 
 func parseDockerResponse(response types.ImageBuildResponse) (string, error) {
-	responseBody := ""
+	var responseBody bytes.Buffer
 	dec := json.NewDecoder(response.Body)
 	for {
 		var jm jsonmessage.JSONMessage
@@ -192,16 +193,16 @@ func parseDockerResponse(response types.ImageBuildResponse) (string, error) {
 			if err == io.EOF {
 				break
 			}
-			return responseBody, err
+			return responseBody.String(), err
 		}
 		jmb, err := json.Marshal(jm)
 		if err != nil {
-			return responseBody, err
+			return responseBody.String(), err
 		}
-		responseBody += string(jmb)
+		responseBody.WriteString(string(jmb))
 		if jm.Error != nil {
-			return responseBody, jm.Error
+			return responseBody.String(), jm.Error
 		}
 	}
-	return responseBody, nil
+	return responseBody.String(), nil
 }
