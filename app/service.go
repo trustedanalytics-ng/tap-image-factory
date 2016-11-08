@@ -17,8 +17,6 @@
 package app
 
 import (
-	"os"
-
 	blobStoreApi "github.com/trustedanalytics/tap-blob-store/client"
 	catalogApi "github.com/trustedanalytics/tap-catalog/client"
 	"github.com/trustedanalytics/tap-go-common/util"
@@ -32,41 +30,17 @@ type BlobStoreApi interface {
 }
 
 func GetCatalogConnector() (*catalogApi.TapCatalogApiConnector, error) {
-	address := util.GetAddressFromKubernetesEnvs("CATALOG")
-	if os.Getenv("CATALOG_SSL_CERT_FILE_LOCATION") != "" {
-		return catalogApi.NewTapCatalogApiWithSSLAndBasicAuth(
-			"https://"+address,
-			os.Getenv("CATALOG_USER"),
-			os.Getenv("CATALOG_PASS"),
-			os.Getenv("CATALOG_SSL_CERT_FILE_LOCATION"),
-			os.Getenv("CATALOG_SSL_KEY_FILE_LOCATION"),
-			os.Getenv("CATALOG_SSL_CA_FILE_LOCATION"),
-		)
-	} else {
-		return catalogApi.NewTapCatalogApiWithBasicAuth(
-			"http://"+address,
-			os.Getenv("CATALOG_USER"),
-			os.Getenv("CATALOG_PASS"),
-		)
+	address, username, password, err := util.GetConnectionParametersFromEnv("CATALOG")
+	if err != nil {
+		panic(err.Error())
 	}
+	return catalogApi.NewTapCatalogApiWithBasicAuth("https://"+address, username, password)
 }
 
 func GetBlobStoreConnector() (*blobStoreApi.TapBlobStoreApiConnector, error) {
-	address := util.GetAddressFromKubernetesEnvs("BLOB_STORE")
-	if os.Getenv("BLOB_STORE_SSL_CERT_FILE_LOCATION") != "" {
-		return blobStoreApi.NewTapBlobStoreApiWithSSLAndBasicAuth(
-			"https://"+address,
-			os.Getenv("BLOB_STORE_USER"),
-			os.Getenv("BLOB_STORE_PASS"),
-			os.Getenv("BLOB_STORE_SSL_CERT_FILE_LOCATION"),
-			os.Getenv("BLOB_STORE_SSL_KEY_FILE_LOCATION"),
-			os.Getenv("BLOB_STORE_SSL_CA_FILE_LOCATION"),
-		)
-	} else {
-		return blobStoreApi.NewTapBlobStoreApiWithBasicAuth(
-			"http://"+address,
-			os.Getenv("BLOB_STORE_USER"),
-			os.Getenv("BLOB_STORE_PASS"),
-		)
+	address, username, password, err := util.GetConnectionParametersFromEnv("BLOB_STORE")
+	if err != nil {
+		panic(err.Error())
 	}
+	return blobStoreApi.NewTapBlobStoreApiWithBasicAuth("https://"+address, username, password)
 }
