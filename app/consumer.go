@@ -25,12 +25,16 @@ import (
 	"github.com/trustedanalytics/tap-image-factory/models"
 )
 
+const (
+	maxSimultaneousRoutines = 1
+)
+
 func StartConsumer(waitGroup *sync.WaitGroup) {
 	waitGroup.Add(1)
 
 	ch, conn := queue.GetConnectionChannel()
 	queue.CreateExchangeWithQueueByRoutingKeys(ch, models.IMAGE_FACTORY_QUEUE_NAME, []string{models.IMAGE_FACTORY_IMAGE_ROUTING_KEY})
-	queue.ConsumeMessages(ch, handleMessage, models.IMAGE_FACTORY_QUEUE_NAME)
+	queue.ConsumeMessages(ch, handleMessage, models.IMAGE_FACTORY_QUEUE_NAME, maxSimultaneousRoutines)
 
 	defer conn.Close()
 	defer ch.Close()
@@ -50,4 +54,5 @@ func handleMessage(msg amqp.Delivery) {
 	if err := BuildAndPushImage(buildImageRequest); err != nil {
 		logger.Error("Building image error:", err)
 	}
+	msg.Ack(false)
 }

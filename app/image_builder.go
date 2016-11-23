@@ -19,10 +19,10 @@ package app
 import (
 	"archive/tar"
 	"bytes"
-	"errors"
-	"io"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"

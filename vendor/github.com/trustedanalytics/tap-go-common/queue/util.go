@@ -21,8 +21,8 @@ import (
 
 	"github.com/streadway/amqp"
 
-	"github.com/trustedanalytics/tap-go-common/util"
 	commonLogger "github.com/trustedanalytics/tap-go-common/logger"
+	"github.com/trustedanalytics/tap-go-common/util"
 )
 
 var logger, _ = commonLogger.InitLogger("queue")
@@ -55,13 +55,22 @@ func getQueueConnectionString() string {
 
 type ConsumeHandlerFunc func(msg amqp.Delivery)
 
-func ConsumeMessages(ch *amqp.Channel, handler ConsumeHandlerFunc, queueName string) {
+func ConsumeMessages(ch *amqp.Channel, handler ConsumeHandlerFunc, queueName string, messagesTaken int) {
 	terminationChannel := util.GetTerminationObserverChannel()
+
+	err := ch.Qos(
+		messagesTaken, // max number of messages taken
+		0,             // max size of message
+		false,         // global
+	)
+	if err != nil {
+		logger.Fatalf("Failed to set qos on queue:", queueName, err)
+	}
 
 	messageChannel, err := ch.Consume(
 		queueName, //queue
 		"",        // consumer - empty means generate unique id
-		true,      // auto-ack
+		false,     // auto-ack
 		false,     // exclusive
 		false,     // no-local
 		false,     // no-wait
@@ -78,7 +87,7 @@ func ConsumeMessages(ch *amqp.Channel, handler ConsumeHandlerFunc, queueName str
 			return
 		case message, ok := <-messageChannel:
 			if ok {
-				handler(message)
+				go handler(message)
 			} else {
 				logger.Fatalf(fmt.Sprintf("Consumer channel close unexpectedly! Queue: %s", queueName))
 			}

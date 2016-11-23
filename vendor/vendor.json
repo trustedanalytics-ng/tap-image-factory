@@ -255,10 +255,10 @@
 			"revisionTime": "2016-10-25T08:10:19Z"
 		},
 		{
-			"checksumSHA1": "hixCh/1rdrUoML3iEfO+XlQGsRQ=",
+			"checksumSHA1": "nxHf+iXHAJtdiSly3m99Z6bwcwg=",
 			"path": "github.com/trustedanalytics/tap-go-common/queue",
-			"revision": "56a490c1ab1ae5a5d37dbfd9650a6daea9ef63f8",
-			"revisionTime": "2016-10-26T15:12:30Z"
+			"revision": "1cab08e30c76de0f071d5f4ce25d510304fc9d5f",
+			"revisionTime": "2016-11-22T12:55:16Z"
 		},
 		{
 			"checksumSHA1": "An5LrDExKu0PzLhnINCwA4QDrbA=",
