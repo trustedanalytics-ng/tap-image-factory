@@ -17,6 +17,7 @@ package client
 
 import (
 	"testing"
+
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -26,5 +27,4 @@ func TestNewTapImageFactoryApiWithBasicAuth(t *testing.T) {
 		So(err, ShouldBeNil)
 		So(client.Address, ShouldEqual, "address")
 	})
-
 }

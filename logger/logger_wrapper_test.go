@@ -17,6 +17,7 @@ package logger_wrapper
 
 import (
 	"testing"
+
 	. "github.com/smartystreets/goconvey/convey"
 )
 
