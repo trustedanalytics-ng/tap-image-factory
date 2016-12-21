@@ -18,12 +18,12 @@ package app
 
 import (
 	"bytes"
-	"encoding/json"
 	"net/http"
 
 	"github.com/gocraft/web"
 
 	blobStoreApi "github.com/trustedanalytics/tap-blob-store/client"
+	"github.com/trustedanalytics/tap-catalog/builder"
 	catalogApi "github.com/trustedanalytics/tap-catalog/client"
 	catalogModels "github.com/trustedanalytics/tap-catalog/models"
 	"github.com/trustedanalytics/tap-go-common/util"
@@ -35,7 +35,7 @@ var logger = logger_wrapper.InitLogger("app")
 
 type Context struct {
 	BlobStoreConnector     *blobStoreApi.TapBlobStoreApiConnector
-	TapCatalogApiConnector *catalogApi.TapCatalogApiConnector
+	TapCatalogApiConnector catalogApi.TapCatalogApi
 	DockerConnector        *DockerClient
 }
 
@@ -122,18 +122,9 @@ func BuildAndPushImage(buildRequest models.BuildImagePostRequest) error {
 }
 
 func updateImageWithState(imageId string, state catalogModels.ImageState, previousState catalogModels.ImageState) error {
-	marshalledValue, err := json.Marshal(state)
+	patch, err := builder.MakePatchWithPreviousValue("state", previousState, state, catalogModels.OperationUpdate)
 	if err != nil {
 		return err
-	}
-
-	patch := catalogModels.Patch{Operation: catalogModels.OperationUpdate, Field: "State", Value: marshalledValue}
-	if previousState != "" {
-		previousStateByte, err := json.Marshal(previousState)
-		if err != nil {
-			return err
-		}
-		patch.PrevValue = previousStateByte
 	}
 
 	_, _, err = ctx.TapCatalogApiConnector.UpdateImage(imageId, []catalogModels.Patch{patch})

@@ -1,6 +1,22 @@
+/**
+ * Copyright (c) 2016 Intel Corporation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package client
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/trustedanalytics/tap-catalog/models"
@@ -23,6 +39,7 @@ type TapCatalogApi interface {
 	GetServicePlan(serviceId, planId string) (models.ServicePlan, int, error)
 	GetService(serviceId string) (models.Service, int, error)
 	GetServices() ([]models.Service, int, error)
+	GetLatestIndex() (models.Index, int, error)
 	ListApplications() ([]models.Application, int, error)
 	ListApplicationsInstances() ([]models.Instance, int, error)
 	ListInstances() ([]models.Instance, int, error)
@@ -40,6 +57,10 @@ type TapCatalogApi interface {
 	DeleteService(serviceId string) (int, error)
 	DeleteImage(imageId string) (int, error)
 	DeleteInstance(instanceId string) (int, error)
+	WatchInstances(afterIndex uint64) (models.StateChange, int, error)
+	WatchInstance(instanceId string, afterIndex uint64) (models.StateChange, int, error)
+	WatchImages(afterIndex uint64) (models.StateChange, int, error)
+	WatchImage(imageId string, afterIndex uint64) (models.StateChange, int, error)
 }
 
 type TapCatalogApiConnector struct {
@@ -57,21 +78,17 @@ const (
 	applications = apiPrefix + apiVersion + "/applications"
 	templates    = apiPrefix + apiVersion + "/templates"
 	images       = apiPrefix + apiVersion + "/images"
+	latestIndex  = apiPrefix + apiVersion + "/latestIndex"
+	nextState    = "nextState"
 	healthz      = "healthz"
 	bindings     = "bindings"
 	plans        = "plans"
+
+	maxIdleConnectionPerHost = 100
 )
 
-func NewTapCatalogApiWithBasicAuth(address, username, password string) (*TapCatalogApiConnector, error) {
-	client, _, err := brokerHttp.GetHttpClient()
-	if err != nil {
-		return nil, err
-	}
-	return &TapCatalogApiConnector{address, username, password, client}, nil
-}
-
-func NewTapCatalogApiWithSSLAndBasicAuth(address, username, password, certPemFile, keyPemFile, caPemFile string) (*TapCatalogApiConnector, error) {
-	client, _, err := brokerHttp.GetHttpClientWithCertAndCaFromFile(certPemFile, keyPemFile, caPemFile)
+func NewTapCatalogApiWithBasicAuth(address, username, password string) (TapCatalogApi, error) {
+	client, _, err := brokerHttp.GetHttpClientWithCustomConnectionLimit(maxIdleConnectionPerHost)
 	if err != nil {
 		return nil, err
 	}
@@ -80,8 +97,15 @@ func NewTapCatalogApiWithSSLAndBasicAuth(address, username, password, certPemFil
 
 func (c *TapCatalogApiConnector) getApiConnector(url string) brokerHttp.ApiConnector {
 	return brokerHttp.ApiConnector{
-		BasicAuth: &brokerHttp.BasicAuth{c.Username, c.Password},
+		BasicAuth: &brokerHttp.BasicAuth{User: c.Username, Password: c.Password},
 		Client:    c.Client,
 		Url:       url,
 	}
+}
+
+func (c *TapCatalogApiConnector) GetLatestIndex() (models.Index, int, error) {
+	connector := c.getApiConnector(fmt.Sprintf("%s/%s", c.Address, latestIndex))
+	result := &models.Index{}
+	status, err := brokerHttp.GetModel(connector, http.StatusOK, result)
+	return *result, status, err
 }

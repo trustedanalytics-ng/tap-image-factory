@@ -27,6 +27,7 @@ import (
 	"github.com/gocraft/web"
 
 	commonLogger "github.com/trustedanalytics/tap-go-common/logger"
+	commonHttp "github.com/trustedanalytics/tap-go-common/http"
 )
 
 var logger, _ = commonLogger.InitLogger("api")
@@ -90,11 +91,12 @@ func WriteJson(rw web.ResponseWriter, response interface{}, status_code int) err
 }
 
 func WriteJsonOrError(rw web.ResponseWriter, response interface{}, status int, err error) error {
-	if status >= 400  {
-		GenericRespond(status, rw, err)
+	responseStatus := commonHttp.GetHttpStatusOrStatusError(status, err)
+	if responseStatus >= 400 {
+		GenericRespond(responseStatus, rw, err)
 		return err
 	}
-	return WriteJson(rw, response, status)
+	return WriteJson(rw, response, responseStatus)
 }
 
 func Respond500(rw web.ResponseWriter, err error) {
@@ -122,4 +124,18 @@ func RespondUnauthorized(rw web.ResponseWriter) {
 	rw.Header().Set("WWW-Authenticate", `Basic realm=""`)
 	rw.WriteHeader(401)
 	rw.Write([]byte("401 Unauthorized\n"))
+}
+
+//In order to get rid of reapeting 'return' statement all cases has to be handled in if{}else{}
+func HandleError(rw web.ResponseWriter, err error) {
+	logger.Debug("handling error", err)
+	if commonHttp.IsNotFoundError(err) {
+		Respond404(rw, err)
+	} else if commonHttp.IsAlreadyExistsError(err) || commonHttp.IsConflictError(err)  {
+		Respond409(rw, err)
+	} else if commonHttp.IsBadRequestError(err){
+		Respond400(rw, err)
+	} else {
+		Respond500(rw, err)
+	}
 }

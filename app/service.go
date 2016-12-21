@@ -29,7 +29,7 @@ type BlobStoreApi interface {
 	DeleteImageBlob(imageId string) error
 }
 
-func GetCatalogConnector() (*catalogApi.TapCatalogApiConnector, error) {
+func GetCatalogConnector() (catalogApi.TapCatalogApi, error) {
 	address, username, password, err := util.GetConnectionParametersFromEnv("CATALOG")
 	if err != nil {
 		panic(err.Error())
