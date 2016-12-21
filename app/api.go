@@ -85,28 +85,28 @@ func BuildAndPushImage(buildRequest models.BuildImagePostRequest) error {
 	} else {
 		imgDetails, _, err := ctx.TapCatalogApiConnector.GetImage(buildRequest.ImageId)
 		if err != nil {
-			updateImageWithState(buildRequest.ImageId, catalogModels.ImageStateError, "")
+			updateImageWithState(buildRequest.ImageId, catalogModels.ImageStateError, catalogModels.ImageStateBuilding)
 			return err
 		}
 
 		buffer := bytes.Buffer{}
 		if err = ctx.BlobStoreConnector.GetBlob(imgDetails.Id, &buffer); err != nil {
-			updateImageWithState(buildRequest.ImageId, catalogModels.ImageStateError, "")
+			updateImageWithState(buildRequest.ImageId, catalogModels.ImageStateError, catalogModels.ImageStateBuilding)
 			return err
 		}
 
 		tag := GetImageWithHubAddressWithoutProtocol(imgDetails.Id)
 		if err = ctx.DockerConnector.CreateImage(bytes.NewReader(buffer.Bytes()), imgDetails.Type, imgDetails.BlobType, tag); err != nil {
-			updateImageWithState(buildRequest.ImageId, catalogModels.ImageStateError, "")
+			updateImageWithState(buildRequest.ImageId, catalogModels.ImageStateError, catalogModels.ImageStateBuilding)
 			return err
 		}
 
 		if err = ctx.DockerConnector.PushImage(tag); err != nil {
-			updateImageWithState(buildRequest.ImageId, catalogModels.ImageStateError, "")
+			updateImageWithState(buildRequest.ImageId, catalogModels.ImageStateError, catalogModels.ImageStateBuilding)
 			return err
 		}
 
-		updateImageWithState(buildRequest.ImageId, catalogModels.ImageStateReady, "")
+		updateImageWithState(buildRequest.ImageId, catalogModels.ImageStateReady, catalogModels.ImageStateBuilding)
 
 		status, err := ctx.BlobStoreConnector.DeleteBlob(imgDetails.Id)
 		if err != nil {
@@ -122,7 +122,7 @@ func BuildAndPushImage(buildRequest models.BuildImagePostRequest) error {
 }
 
 func updateImageWithState(imageId string, state catalogModels.ImageState, previousState catalogModels.ImageState) error {
-	patch, err := builder.MakePatchWithPreviousValue("state", previousState, state, catalogModels.OperationUpdate)
+	patch, err := builder.MakePatchWithPreviousValue("state", state, previousState, catalogModels.OperationUpdate)
 	if err != nil {
 		return err
 	}
