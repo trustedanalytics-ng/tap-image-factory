@@ -225,10 +225,10 @@
 			"revisionTime": "2016-03-11T21:55:03Z"
 		},
 		{
-			"checksumSHA1": "vUR2kIT0UevYLcuyZGxoi8ANDxY=",
+			"checksumSHA1": "+U7UtRSoYSwKMUv2XV1eTSoYieg=",
 			"path": "github.com/trustedanalytics/tap-blob-store/client",
-			"revision": "de98dd3bfdcc059be043a979527f82935834df0b",
-			"revisionTime": "2016-12-08T13:21:09Z"
+			"revision": "c2192ac34e8da2505276be09f31b7059f6b4563b",
+			"revisionTime": "2016-12-12T21:09:10Z"
 		},
 		{
 			"checksumSHA1": "WWlkQHKSnNNnaP7inivclH/EvKQ=",
@@ -273,34 +273,34 @@
 			"revisionTime": "2016-12-16T15:10:41Z"
 		},
 		{
-			"checksumSHA1": "OSm6RZiYQAt0m62Pfrsa2NtYzlk=",
+			"checksumSHA1": "qibtfubsKPWSw1fn32Px/Ks9w7c=",
 			"path": "github.com/trustedanalytics/tap-image-factory",
-			"revision": "dd3fc10b7a18ca67c0ce69dbbf11918683561b57",
-			"revisionTime": "2016-12-21T08:34:01Z"
+			"revision": "1d73843d04532ad06d7ef6cea85eaf6262806d8b",
+			"revisionTime": "2016-12-21T12:04:46Z"
 		},
 		{
-			"checksumSHA1": "bzURKeWBBvWXn33MV0+djqw3Oyo=",
+			"checksumSHA1": "upK0Ch583oa0s20g8E3r7vJxyLo=",
 			"path": "github.com/trustedanalytics/tap-image-factory/app",
-			"revision": "dd3fc10b7a18ca67c0ce69dbbf11918683561b57",
-			"revisionTime": "2016-12-21T08:34:01Z"
+			"revision": "1d73843d04532ad06d7ef6cea85eaf6262806d8b",
+			"revisionTime": "2016-12-21T12:04:46Z"
 		},
 		{
 			"checksumSHA1": "wXXJfLpilVFIiuB2eQlD0lfAsKc=",
 			"path": "github.com/trustedanalytics/tap-image-factory/client",
-			"revision": "dd3fc10b7a18ca67c0ce69dbbf11918683561b57",
-			"revisionTime": "2016-12-21T08:34:01Z"
+			"revision": "1d73843d04532ad06d7ef6cea85eaf6262806d8b",
+			"revisionTime": "2016-12-21T12:04:46Z"
 		},
 		{
 			"checksumSHA1": "0hvQcl+mWJpypHoNcme3ARgofBs=",
 			"path": "github.com/trustedanalytics/tap-image-factory/logger",
-			"revision": "dd3fc10b7a18ca67c0ce69dbbf11918683561b57",
-			"revisionTime": "2016-12-21T08:34:01Z"
+			"revision": "1d73843d04532ad06d7ef6cea85eaf6262806d8b",
+			"revisionTime": "2016-12-21T12:04:46Z"
 		},
 		{
 			"checksumSHA1": "lsfU00fl3cUdDOPW+RCqbIqvCH8=",
 			"path": "github.com/trustedanalytics/tap-image-factory/models",
-			"revision": "dd3fc10b7a18ca67c0ce69dbbf11918683561b57",
-			"revisionTime": "2016-12-21T08:34:01Z"
+			"revision": "1d73843d04532ad06d7ef6cea85eaf6262806d8b",
+			"revisionTime": "2016-12-21T12:04:46Z"
 		},
 		{
 			"checksumSHA1": "9jjO5GjLa0XF/nfWihF02RoH4qc=",
