@@ -51,7 +51,7 @@ func handleMessage(msg amqp.Delivery) {
 		return
 	}
 
-	if err := BuildAndPushImage(buildImageRequest); err != nil {
+	if err := BuildAndPushImage(buildImageRequest.ImageId); err != nil {
 		logger.Error("Building image error:", err)
 	}
 	err = msg.Ack(false)

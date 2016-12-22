@@ -17,21 +17,27 @@
 package app
 
 import (
-	"bytes"
 	"net/http"
 
 	"github.com/gocraft/web"
+	"github.com/op/go-logging"
 
 	blobStoreApi "github.com/trustedanalytics/tap-blob-store/client"
-	"github.com/trustedanalytics/tap-catalog/builder"
 	catalogApi "github.com/trustedanalytics/tap-catalog/client"
-	catalogModels "github.com/trustedanalytics/tap-catalog/models"
+	commonLogger "github.com/trustedanalytics/tap-go-common/logger"
 	"github.com/trustedanalytics/tap-go-common/util"
-	"github.com/trustedanalytics/tap-image-factory/logger"
 	"github.com/trustedanalytics/tap-image-factory/models"
 )
 
-var logger = logger_wrapper.InitLogger("app")
+var logger = initLogger()
+
+func initLogger() *logging.Logger {
+	logger, err := commonLogger.InitLogger("app")
+	if err != nil {
+		panic(err)
+	}
+	return logger
+}
 
 type Context struct {
 	BlobStoreConnector     *blobStoreApi.TapBlobStoreApiConnector
@@ -64,6 +70,7 @@ func SetupContext() *Context {
 	}
 	return ctx
 }
+
 func (c *Context) BuildImage(rw web.ResponseWriter, req *web.Request) {
 	buildRequest := models.BuildImagePostRequest{}
 	if err := util.ReadJson(req, &buildRequest); err != nil {
@@ -72,61 +79,9 @@ func (c *Context) BuildImage(rw web.ResponseWriter, req *web.Request) {
 	}
 
 	go func() {
-		if err := BuildAndPushImage(buildRequest); err != nil {
+		if err := BuildAndPushImage(buildRequest.ImageId); err != nil {
 			logger.Error("Building image error:", err)
 		}
 	}()
 	util.WriteJson(rw, "", http.StatusAccepted)
-}
-
-func BuildAndPushImage(buildRequest models.BuildImagePostRequest) error {
-	if err := updateImageWithState(buildRequest.ImageId, catalogModels.ImageStateBuilding, catalogModels.ImageStatePending); err != nil {
-		return err
-	} else {
-		imgDetails, _, err := ctx.TapCatalogApiConnector.GetImage(buildRequest.ImageId)
-		if err != nil {
-			updateImageWithState(buildRequest.ImageId, catalogModels.ImageStateError, catalogModels.ImageStateBuilding)
-			return err
-		}
-
-		buffer := bytes.Buffer{}
-		if err = ctx.BlobStoreConnector.GetBlob(imgDetails.Id, &buffer); err != nil {
-			updateImageWithState(buildRequest.ImageId, catalogModels.ImageStateError, catalogModels.ImageStateBuilding)
-			return err
-		}
-
-		tag := GetImageWithHubAddressWithoutProtocol(imgDetails.Id)
-		if err = ctx.DockerConnector.CreateImage(bytes.NewReader(buffer.Bytes()), imgDetails.Type, imgDetails.BlobType, tag); err != nil {
-			updateImageWithState(buildRequest.ImageId, catalogModels.ImageStateError, catalogModels.ImageStateBuilding)
-			return err
-		}
-
-		if err = ctx.DockerConnector.PushImage(tag); err != nil {
-			updateImageWithState(buildRequest.ImageId, catalogModels.ImageStateError, catalogModels.ImageStateBuilding)
-			return err
-		}
-
-		updateImageWithState(buildRequest.ImageId, catalogModels.ImageStateReady, catalogModels.ImageStateBuilding)
-
-		status, err := ctx.BlobStoreConnector.DeleteBlob(imgDetails.Id)
-		if err != nil {
-			return err
-
-		}
-		if status != http.StatusNoContent {
-			logger.Warning("Blob removal failed. Actual status %v", status)
-		}
-		logger.Info("Image build SUCCESS! Id:", buildRequest.ImageId)
-		return nil
-	}
-}
-
-func updateImageWithState(imageId string, state catalogModels.ImageState, previousState catalogModels.ImageState) error {
-	patch, err := builder.MakePatchWithPreviousValue("state", state, previousState, catalogModels.OperationUpdate)
-	if err != nil {
-		return err
-	}
-
-	_, _, err = ctx.TapCatalogApiConnector.UpdateImage(imageId, []catalogModels.Patch{patch})
-	return err
 }

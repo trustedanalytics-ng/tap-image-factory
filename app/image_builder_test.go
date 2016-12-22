@@ -17,8 +17,6 @@
 package app
 
 import (
-	"archive/tar"
-	"bytes"
 	"strings"
 	"testing"
 
@@ -29,9 +27,7 @@ import (
 )
 
 var (
-	testBaseImage            = imageFactoryModels.ImagesMap[catalogModels.ImageTypeJava]
-	testImageArtifactContent = "Test artifact file content"
-	testDockerfileContent    = "FROM " + testBaseImage + "\n" + "RUN mkdir /test_dir\n" + "CMD [~/run.sh]"
+	testBaseImage = imageFactoryModels.ImagesMap[catalogModels.ImageTypeJava]
 )
 
 func TestCreateDockerfileForTarGzBlob(t *testing.T) {
@@ -65,58 +61,6 @@ func TestCreateDockerfileForJarBlob(t *testing.T) {
 			So(dockerfileStringArray[4], ShouldEqual, "EXPOSE $PORT")
 			So(dockerfileStringArray[5], ShouldEqual, "WORKDIR /root")
 			So(dockerfileStringArray[6], ShouldEqual, "CMD [\"/root/run.sh\"]")
-		})
-	})
-}
-
-func TestCreateBuildContextForTarGzBlob(t *testing.T) {
-	testImageArtifact := bytes.NewBufferString(testImageArtifactContent)
-	testDockerfile := bytes.NewBufferString(testDockerfileContent)
-	Convey("Test CreateBuildContext", t, func() {
-		Convey("Context should contains proper files", func() {
-			context, err := createBuildContext(testImageArtifact, testDockerfile, catalogModels.BlobTypeTarGz)
-			So(err, ShouldBeNil)
-			tr := tar.NewReader(context)
-			hdr, err := tr.Next()
-
-			So(hdr.Name, ShouldEqual, blobTypeFileNameMap[catalogModels.BlobTypeTarGz])
-			trStr, _ := StreamToString(tr)
-			So(trStr, ShouldEqual, "Test artifact file content")
-
-			hdr, err = tr.Next()
-
-			So(hdr.Name, ShouldEqual, "Dockerfile")
-			trStr, _ = StreamToString(tr)
-			So(trStr, ShouldEqual, testDockerfileContent)
-		})
-	})
-}
-
-func TestCreateBuildContextForJarBlob(t *testing.T) {
-	testImageArtifact := bytes.NewBufferString(testImageArtifactContent)
-	testDockerfile := bytes.NewBufferString(testDockerfileContent)
-	Convey("Test CreateBuildContext", t, func() {
-		Convey("Context should contains proper files", func() {
-			context, err := createBuildContext(testImageArtifact, testDockerfile, catalogModels.BlobTypeJar)
-			So(err, ShouldBeNil)
-			tr := tar.NewReader(context)
-			hdr, err := tr.Next()
-
-			So(hdr.Name, ShouldEqual, blobTypeFileNameMap[catalogModels.BlobTypeJar])
-			trStr, _ := StreamToString(tr)
-			So(trStr, ShouldEqual, "Test artifact file content")
-
-			hdr, err = tr.Next()
-
-			So(hdr.Name, ShouldEqual, "Dockerfile")
-			trStr, _ = StreamToString(tr)
-			So(trStr, ShouldEqual, testDockerfileContent)
-
-			hdr, err = tr.Next()
-
-			So(hdr.Name, ShouldEqual, "run.sh")
-			trStr, _ = StreamToString(tr)
-			So(trStr, ShouldEqual, blobTypeRunCommandMap[catalogModels.BlobTypeJar])
 		})
 	})
 }
