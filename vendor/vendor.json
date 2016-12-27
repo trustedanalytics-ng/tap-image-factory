@@ -225,82 +225,52 @@
 			"revisionTime": "2016-03-11T21:55:03Z"
 		},
 		{
-			"checksumSHA1": "+U7UtRSoYSwKMUv2XV1eTSoYieg=",
+			"checksumSHA1": "M63wSpIzXCh5Q0njH7In4FOe8qg=",
 			"path": "github.com/trustedanalytics/tap-blob-store/client",
-			"revision": "c2192ac34e8da2505276be09f31b7059f6b4563b",
-			"revisionTime": "2016-12-12T21:09:10Z"
+			"revision": "20960845f26950aed457999a135a8b6a42c37e03",
+			"revisionTime": "2016-12-27T10:04:00Z"
 		},
 		{
 			"checksumSHA1": "WWlkQHKSnNNnaP7inivclH/EvKQ=",
 			"path": "github.com/trustedanalytics/tap-catalog/builder",
-			"revision": "19c7a9a2f706d77168af1b6a14ff15abfc6ac635",
-			"revisionTime": "2016-12-21T11:29:24Z"
+			"revision": "f6db3ca7d72b2e8c6bbb78c2225c00fe23078c61",
+			"revisionTime": "2016-12-27T11:32:16Z"
 		},
 		{
 			"checksumSHA1": "WRI1vkm8xvK5J13q7NC/uXfP9+k=",
 			"path": "github.com/trustedanalytics/tap-catalog/client",
-			"revision": "19c7a9a2f706d77168af1b6a14ff15abfc6ac635",
-			"revisionTime": "2016-12-21T11:29:24Z"
+			"revision": "f6db3ca7d72b2e8c6bbb78c2225c00fe23078c61",
+			"revisionTime": "2016-12-27T11:32:16Z"
 		},
 		{
 			"checksumSHA1": "ul9LBz80gsG+Nxu5UxnwQqz+9x4=",
 			"path": "github.com/trustedanalytics/tap-catalog/models",
-			"revision": "19c7a9a2f706d77168af1b6a14ff15abfc6ac635",
-			"revisionTime": "2016-12-21T11:29:24Z"
+			"revision": "f6db3ca7d72b2e8c6bbb78c2225c00fe23078c61",
+			"revisionTime": "2016-12-27T11:32:16Z"
 		},
 		{
-			"checksumSHA1": "aGXiBzsmMRe2XEZ6m+2ujkTljPE=",
+			"checksumSHA1": "TMAWOipcdZIj8HqfHZqYrWh/two=",
 			"path": "github.com/trustedanalytics/tap-go-common/http",
-			"revision": "9b22f32c7ac1d13f2d23b2f5d378717974d504d2",
-			"revisionTime": "2016-12-16T15:10:41Z"
+			"revision": "57cb9e57f012c824b1fb95c578c63353f1470f8d",
+			"revisionTime": "2016-12-27T09:18:44Z"
 		},
 		{
 			"checksumSHA1": "O4sIfCHeupMT91S+wt73AAfH4bQ=",
 			"path": "github.com/trustedanalytics/tap-go-common/logger",
-			"revision": "9b22f32c7ac1d13f2d23b2f5d378717974d504d2",
-			"revisionTime": "2016-12-16T15:10:41Z"
+			"revision": "57cb9e57f012c824b1fb95c578c63353f1470f8d",
+			"revisionTime": "2016-12-27T09:18:44Z"
 		},
 		{
 			"checksumSHA1": "nxHf+iXHAJtdiSly3m99Z6bwcwg=",
 			"path": "github.com/trustedanalytics/tap-go-common/queue",
-			"revision": "9b22f32c7ac1d13f2d23b2f5d378717974d504d2",
-			"revisionTime": "2016-12-16T15:10:41Z"
+			"revision": "57cb9e57f012c824b1fb95c578c63353f1470f8d",
+			"revisionTime": "2016-12-27T09:18:44Z"
 		},
 		{
-			"checksumSHA1": "1K4fYRigh2k36HJqKBXw0vbzhKc=",
+			"checksumSHA1": "05MzhouJMf4FGs8YGNGJ9c/mIpg=",
 			"path": "github.com/trustedanalytics/tap-go-common/util",
-			"revision": "9b22f32c7ac1d13f2d23b2f5d378717974d504d2",
-			"revisionTime": "2016-12-16T15:10:41Z"
-		},
-		{
-			"checksumSHA1": "qibtfubsKPWSw1fn32Px/Ks9w7c=",
-			"path": "github.com/trustedanalytics/tap-image-factory",
-			"revision": "1d73843d04532ad06d7ef6cea85eaf6262806d8b",
-			"revisionTime": "2016-12-21T12:04:46Z"
-		},
-		{
-			"checksumSHA1": "upK0Ch583oa0s20g8E3r7vJxyLo=",
-			"path": "github.com/trustedanalytics/tap-image-factory/app",
-			"revision": "1d73843d04532ad06d7ef6cea85eaf6262806d8b",
-			"revisionTime": "2016-12-21T12:04:46Z"
-		},
-		{
-			"checksumSHA1": "wXXJfLpilVFIiuB2eQlD0lfAsKc=",
-			"path": "github.com/trustedanalytics/tap-image-factory/client",
-			"revision": "1d73843d04532ad06d7ef6cea85eaf6262806d8b",
-			"revisionTime": "2016-12-21T12:04:46Z"
-		},
-		{
-			"checksumSHA1": "0hvQcl+mWJpypHoNcme3ARgofBs=",
-			"path": "github.com/trustedanalytics/tap-image-factory/logger",
-			"revision": "1d73843d04532ad06d7ef6cea85eaf6262806d8b",
-			"revisionTime": "2016-12-21T12:04:46Z"
-		},
-		{
-			"checksumSHA1": "lsfU00fl3cUdDOPW+RCqbIqvCH8=",
-			"path": "github.com/trustedanalytics/tap-image-factory/models",
-			"revision": "1d73843d04532ad06d7ef6cea85eaf6262806d8b",
-			"revisionTime": "2016-12-21T12:04:46Z"
+			"revision": "57cb9e57f012c824b1fb95c578c63353f1470f8d",
+			"revisionTime": "2016-12-27T09:18:44Z"
 		},
 		{
 			"checksumSHA1": "9jjO5GjLa0XF/nfWihF02RoH4qc=",
