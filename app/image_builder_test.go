@@ -42,7 +42,8 @@ func TestCreateDockerfileForTarGzBlob(t *testing.T) {
 			So(dockerfileStringArray[2], ShouldEqual, "ENV PORT 80")
 			So(dockerfileStringArray[3], ShouldEqual, "EXPOSE $PORT")
 			So(dockerfileStringArray[4], ShouldEqual, "WORKDIR /root")
-			So(dockerfileStringArray[5], ShouldEqual, "CMD [\"/root/run.sh\"]")
+			So(dockerfileStringArray[5], ShouldEqual, "RUN chmod +x /root/run.sh")
+			So(dockerfileStringArray[6], ShouldEqual, "CMD [\"/root/run.sh\"]")
 		})
 	})
 }
@@ -60,7 +61,8 @@ func TestCreateDockerfileForJarBlob(t *testing.T) {
 			So(dockerfileStringArray[3], ShouldEqual, "ENV PORT 80")
 			So(dockerfileStringArray[4], ShouldEqual, "EXPOSE $PORT")
 			So(dockerfileStringArray[5], ShouldEqual, "WORKDIR /root")
-			So(dockerfileStringArray[6], ShouldEqual, "CMD [\"/root/run.sh\"]")
+			So(dockerfileStringArray[6], ShouldEqual, "RUN chmod +x /root/run.sh")
+			So(dockerfileStringArray[7], ShouldEqual, "CMD [\"/root/run.sh\"]")
 		})
 	})
 }

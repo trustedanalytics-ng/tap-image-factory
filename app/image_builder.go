@@ -139,6 +139,7 @@ func createDockerfile(imageType catalogModels.ImageType, blobType catalogModels.
 	buf.WriteString("ENV PORT 80\n")
 	buf.WriteString("EXPOSE $PORT\n")
 	buf.WriteString("WORKDIR /root\n")
+	buf.WriteString("RUN chmod +x /root/run.sh\n")
 	buf.WriteString("CMD [\"/root/run.sh\"]")
 	return buf, nil
 }
