@@ -18,6 +18,7 @@ package client
 import (
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/trustedanalytics/tap-catalog/models"
 	brokerHttp "github.com/trustedanalytics/tap-go-common/http"
@@ -34,6 +35,7 @@ type TapCatalogApi interface {
 	GetApplication(applicationId string) (models.Application, int, error)
 	GetCatalogHealth() (int, error)
 	GetImage(imageId string) (models.Image, int, error)
+	GetImageRefs(imageId string) (models.ImageRefsResponse, int, error)
 	GetInstance(instanceId string) (models.Instance, int, error)
 	GetInstanceBindings(instanceId string) ([]models.Instance, int, error)
 	GetServicePlan(serviceId, planId string) (models.ServicePlan, int, error)
@@ -66,10 +68,11 @@ type TapCatalogApi interface {
 }
 
 type TapCatalogApiConnector struct {
-	Address  string
-	Username string
-	Password string
-	Client   *http.Client
+	Address     string
+	Username    string
+	Password    string
+	Client      *http.Client
+	WatchClient *http.Client
 }
 
 const (
@@ -82,12 +85,14 @@ const (
 	images       = apiPrefix + apiVersion + "/images"
 	latestIndex  = apiPrefix + apiVersion + "/latest-index"
 	stableState  = apiPrefix + apiVersion + "/stable-state"
+	checkRefs    = "check-refs"
 	nextState    = "next-state"
 	healthz      = "healthz"
 	bindings     = "bindings"
 	plans        = "plans"
 
 	maxIdleConnectionPerHost = 100
+	watchClientTimeout       = time.Duration(30 * time.Minute)
 )
 
 func NewTapCatalogApiWithBasicAuth(address, username, password string) (TapCatalogApi, error) {
@@ -95,13 +100,33 @@ func NewTapCatalogApiWithBasicAuth(address, username, password string) (TapCatal
 	if err != nil {
 		return nil, err
 	}
-	return &TapCatalogApiConnector{address, username, password, client}, nil
+
+	watchClient, _, err := brokerHttp.GetHttpClientWithCustomConnectionLimit(maxIdleConnectionPerHost)
+	if err != nil {
+		return nil, err
+	}
+	watchClient.Timeout = watchClientTimeout
+
+	return &TapCatalogApiConnector{
+		Address:     address,
+		Username:    username,
+		Password:    password,
+		Client:      client,
+		WatchClient: watchClient}, nil
 }
 
 func (c *TapCatalogApiConnector) getApiConnector(url string) brokerHttp.ApiConnector {
 	return brokerHttp.ApiConnector{
 		BasicAuth: &brokerHttp.BasicAuth{User: c.Username, Password: c.Password},
 		Client:    c.Client,
+		Url:       url,
+	}
+}
+
+func (c *TapCatalogApiConnector) getWatchApiConnector(url string) brokerHttp.ApiConnector {
+	return brokerHttp.ApiConnector{
+		BasicAuth: &brokerHttp.BasicAuth{User: c.Username, Password: c.Password},
+		Client:    c.WatchClient,
 		Url:       url,
 	}
 }

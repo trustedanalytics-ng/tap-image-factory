@@ -20,8 +20,8 @@ import (
 
 	"github.com/streadway/amqp"
 
+	commonHTTP "github.com/trustedanalytics/tap-go-common/http"
 	"github.com/trustedanalytics/tap-go-common/queue"
-	"github.com/trustedanalytics/tap-go-common/util"
 	"github.com/trustedanalytics/tap-image-factory/models"
 )
 
@@ -45,7 +45,7 @@ func StartConsumer(waitGroup *sync.WaitGroup) {
 
 func handleMessage(msg amqp.Delivery) {
 	buildImageRequest := models.BuildImagePostRequest{}
-	err := util.ReadJsonFromByte(msg.Body, &buildImageRequest)
+	err := commonHTTP.ReadJsonFromByte(msg.Body, &buildImageRequest)
 	if err != nil {
 		logger.Error(err.Error())
 		return

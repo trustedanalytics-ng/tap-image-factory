@@ -24,8 +24,8 @@ import (
 
 	blobStoreApi "github.com/trustedanalytics/tap-blob-store/client"
 	catalogApi "github.com/trustedanalytics/tap-catalog/client"
+	commonHTTP "github.com/trustedanalytics/tap-go-common/http"
 	commonLogger "github.com/trustedanalytics/tap-go-common/logger"
-	"github.com/trustedanalytics/tap-go-common/util"
 	"github.com/trustedanalytics/tap-image-factory/models"
 )
 
@@ -73,8 +73,8 @@ func SetupContext() *Context {
 
 func (c *Context) BuildImage(rw web.ResponseWriter, req *web.Request) {
 	buildRequest := models.BuildImagePostRequest{}
-	if err := util.ReadJson(req, &buildRequest); err != nil {
-		util.Respond400(rw, err)
+	if err := commonHTTP.ReadJson(req, &buildRequest); err != nil {
+		commonHTTP.Respond400(rw, err)
 		return
 	}
 
@@ -83,5 +83,5 @@ func (c *Context) BuildImage(rw web.ResponseWriter, req *web.Request) {
 			logger.Error("Building image error:", err)
 		}
 	}()
-	util.WriteJson(rw, "", http.StatusAccepted)
+	commonHTTP.WriteJson(rw, "", http.StatusAccepted)
 }
