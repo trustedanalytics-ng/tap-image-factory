@@ -36,7 +36,13 @@ func (e ImageProcessingErr) Error() string {
 	return e.parentErr.Error()
 }
 
-func BuildAndPushImage(imageID string) error {
+type FactoryAPI interface {
+	BuildAndPushImage(imageID string) error
+}
+
+type Factory struct{}
+
+func (f *Factory) BuildAndPushImage(imageID string) error {
 	logger.Debug("started")
 
 	var err error

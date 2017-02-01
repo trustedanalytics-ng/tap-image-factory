@@ -80,3 +80,10 @@ build_anywhere: prepare_dirs
 	rm -Rf application && mkdir application
 	cp ./tap-image-factory ./application/tap-image-factory
 	rm -Rf ./temp
+
+mock_update:
+	$(GOBIN)/mockgen -source=app/factory.go -package=app -destination=app/factory_mock_test.go
+	$(GOBIN)/mockgen -source=app/image_builder.go -package=app -destination=app/image_builder_mock.go
+	$(GOBIN)/mockgen -source=vendor/github.com/trustedanalytics/tap-catalog/client/client.go -package=app -destination=app/catalog_mock_test.go
+	$(GOBIN)/mockgen -source=vendor/github.com/trustedanalytics/tap-blob-store/client/client.go -package=app -destination=app/blob_store_mock_test.go
+	./add_license.sh

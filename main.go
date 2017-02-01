@@ -18,8 +18,6 @@ package main
 import (
 	"sync"
 
-	"github.com/gocraft/web"
-
 	httpGoCommon "github.com/trustedanalytics/tap-go-common/http"
 	"github.com/trustedanalytics/tap-go-common/util"
 	"github.com/trustedanalytics/tap-image-factory/app"
@@ -30,27 +28,12 @@ var waitGroup = &sync.WaitGroup{}
 func main() {
 	go util.TerminationObserver(waitGroup, "Container-broker")
 
-	context := *app.SetupContext()
+	context := app.SetupContext()
+	router := app.SetupRouter(context)
 
 	/* Queue Handling */
 	go app.StartConsumer(waitGroup)
-	/* Queue Handling */
 
-	/* REST API handling */
-	router := web.New(context)
-	router.Middleware(web.LoggerMiddleware)
-
-	router.Get("/healthz", context.GetImageFactoryHealth)
-
-	apiRouter := router.Subrouter(context, "/api/v1")
-	route(apiRouter, &context)
-	v1AliasRouter := router.Subrouter(context, "/api/v1.0")
-	route(v1AliasRouter, &context)
-
+	/* REST API Handling */
 	httpGoCommon.StartServer(router)
-	/* REST API handling */
-}
-
-func route(router *web.Router, context *app.Context) {
-	router.Post("/image", context.BuildImage)
 }

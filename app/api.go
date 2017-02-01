@@ -24,7 +24,7 @@ import (
 
 	blobStoreApi "github.com/trustedanalytics/tap-blob-store/client"
 	catalogApi "github.com/trustedanalytics/tap-catalog/client"
-	commonHTTP "github.com/trustedanalytics/tap-go-common/http"
+	commonHttp "github.com/trustedanalytics/tap-go-common/http"
 	commonLogger "github.com/trustedanalytics/tap-go-common/logger"
 	"github.com/trustedanalytics/tap-image-factory/models"
 )
@@ -40,9 +40,10 @@ func initLogger() *logging.Logger {
 }
 
 type Context struct {
-	BlobStoreConnector     *blobStoreApi.TapBlobStoreApiConnector
+	BlobStoreConnector     blobStoreApi.TapBlobStoreApi
 	TapCatalogApiConnector catalogApi.TapCatalogApi
-	DockerConnector        *DockerClient
+	DockerConnector        ImageBuilder
+	Factory                FactoryAPI
 }
 
 var ctx *Context
@@ -67,21 +68,23 @@ func SetupContext() *Context {
 			logger.Panic(err)
 		}
 		ctx.DockerConnector = dockerClient
+
+		ctx.Factory = &Factory{}
 	}
 	return ctx
 }
 
 func (c *Context) BuildImage(rw web.ResponseWriter, req *web.Request) {
 	buildRequest := models.BuildImagePostRequest{}
-	if err := commonHTTP.ReadJson(req, &buildRequest); err != nil {
-		commonHTTP.Respond400(rw, err)
+	if err := commonHttp.ReadJson(req, &buildRequest); err != nil {
+		commonHttp.Respond400(rw, err)
 		return
 	}
 
 	go func() {
-		if err := BuildAndPushImage(buildRequest.ImageId); err != nil {
+		if err := c.Factory.BuildAndPushImage(buildRequest.ImageId); err != nil {
 			logger.Error("Building image error:", err)
 		}
 	}()
-	commonHTTP.WriteJson(rw, "", http.StatusAccepted)
+	commonHttp.WriteJson(rw, "", http.StatusAccepted)
 }
