@@ -32,6 +32,7 @@ type MockPack struct {
 	MockTapCatalogApiConnector *MockTapCatalogApi
 	MockDockerConnector        *MockImageBuilder
 	MockFactory                *MockFactoryAPI
+	MockReader                 *MockFileReader
 }
 
 func prepareMocksAndClient(t *testing.T) (mockCtrl *gomock.Controller, mocks MockPack, client client.TapApiImageFactoryApi, router *web.Router) {
@@ -42,6 +43,7 @@ func prepareMocksAndClient(t *testing.T) (mockCtrl *gomock.Controller, mocks Moc
 		MockTapCatalogApiConnector: NewMockTapCatalogApi(mockCtrl),
 		MockDockerConnector:        NewMockImageBuilder(mockCtrl),
 		MockFactory:                NewMockFactoryAPI(mockCtrl),
+		MockReader:                 NewMockFileReader(mockCtrl),
 	}
 
 	c := Context{
@@ -49,6 +51,7 @@ func prepareMocksAndClient(t *testing.T) (mockCtrl *gomock.Controller, mocks Moc
 		TapCatalogApiConnector: mocks.MockTapCatalogApiConnector,
 		DockerConnector:        mocks.MockDockerConnector,
 		Factory:                mocks.MockFactory,
+		Reader:                 mocks.MockReader,
 	}
 	ctx = &c
 

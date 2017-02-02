@@ -17,8 +17,10 @@
 package app
 
 import (
+	"archive/tar"
 	"bufio"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -69,6 +71,8 @@ func (f *Factory) BuildAndPushImage(imageID string) error {
 
 	imageTag, err := buildImage(imageInfo)
 	if err != nil {
+		appID := catalogModels.GetApplicationId(imageID)
+		updateLastStateChangeReason(appID, err.Error())
 		return err
 	}
 
@@ -95,6 +99,23 @@ func markImageAs(state catalogModels.ImageState, imageID string) error {
 	default:
 		return fmt.Errorf("inappriopriate state (%v) to mark image as!", state)
 	}
+}
+
+func updateLastStateChangeReason(id, message string) {
+	lastStateChangeReasonMetadata := catalogModels.Metadata{
+		Id: catalogModels.LAST_STATE_CHANGE_REASON, Value: message,
+	}
+	metadataPatch, err := builder.MakePatch("Metadata", lastStateChangeReasonMetadata, catalogModels.OperationAdd)
+	if err != nil {
+		logger.Errorf("cannot prepare last state reason patch %q for application %q: %v", message, id, err)
+		return
+	}
+
+	if _, _, err = ctx.TapCatalogApiConnector.UpdateApplication(id, []catalogModels.Patch{metadataPatch}); err != nil {
+		logger.Errorf("cannot patch last state change reason %q for application %q: %v", message, id, err)
+	}
+
+	return
 }
 
 func getImageInfoFromCatalog(imageID string) (catalogModels.Image, error) {
@@ -128,6 +149,15 @@ func buildImage(imageInfo catalogModels.Image) (string, error) {
 		return "", ImageProcessingErr{imageID: imageInfo.Id, parentErr: err}
 	}
 
+	if err = validateBlob(tempBlobFile); err != nil {
+		return "", ImageProcessingErr{imageID: imageInfo.Id, parentErr: err}
+	}
+
+	_, err = tempBlobFile.Seek(0, 0)
+	if err != nil {
+		return "", ImageProcessingErr{imageID: imageInfo.Id, parentErr: err}
+	}
+
 	imageTag := GetImageWithHubAddressWithoutProtocol(imageInfo.Id)
 
 	err = ctx.DockerConnector.CreateImage(tempBlobFile, imageInfo.Type, imageInfo.BlobType, imageTag)
@@ -136,6 +166,37 @@ func buildImage(imageInfo catalogModels.Image) (string, error) {
 	}
 
 	return imageTag, nil
+}
+
+func validateBlob(reader io.Reader) error {
+	gzf, err := ctx.Reader.NewGzipReader(reader)
+	if err != nil {
+		err := fmt.Errorf("cannot parse file: %v", err)
+		logger.Error(err.Error())
+		return err
+	}
+
+	tarReader := ctx.Reader.NewTarReader(gzf)
+	for {
+		header, err := tarReader.Next()
+
+		if err == io.EOF {
+			break
+		}
+
+		if err != nil {
+			err := fmt.Errorf("parsing error file: %v", err)
+			logger.Error(err.Error())
+			return err
+		}
+
+		if (header.Name == "./run.sh" || header.Name == "run.sh") &&
+			(header.Typeflag == tar.TypeReg || header.Typeflag == tar.TypeSymlink) {
+			return nil
+		}
+	}
+
+	return fmt.Errorf("run.sh file is missing")
 }
 
 func pushImage(imageID, imageTag string) error {
