@@ -44,7 +44,7 @@ type Context struct {
 	TapCatalogApiConnector catalogApi.TapCatalogApi
 	DockerConnector        ImageBuilder
 	Factory                FactoryAPI
-	Reader                 FileReader
+	Reader                 ArchiveReader
 }
 
 var ctx *Context
@@ -72,7 +72,7 @@ func SetupContext() *Context {
 
 		ctx.Factory = &Factory{}
 
-		ctx.Reader = &ArchiveReader{}
+		ctx.Reader = &DefaultArchiveReader{}
 	}
 	return ctx
 }

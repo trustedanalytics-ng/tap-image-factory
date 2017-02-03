@@ -29,6 +29,8 @@ import (
 	catalogModels "github.com/trustedanalytics/tap-catalog/models"
 )
 
+const runFileName = "run.sh"
+
 type ImageProcessingErr struct {
 	imageID   string
 	parentErr error
@@ -175,6 +177,7 @@ func validateBlob(reader io.Reader) error {
 		logger.Error(err.Error())
 		return err
 	}
+	defer gzf.Close()
 
 	tarReader := ctx.Reader.NewTarReader(gzf)
 	for {
@@ -190,13 +193,13 @@ func validateBlob(reader io.Reader) error {
 			return err
 		}
 
-		if (header.Name == "./run.sh" || header.Name == "run.sh") &&
+		if (header.Name == ("./"+runFileName) || header.Name == runFileName) &&
 			(header.Typeflag == tar.TypeReg || header.Typeflag == tar.TypeSymlink) {
 			return nil
 		}
 	}
 
-	return fmt.Errorf("run.sh file is missing")
+	return fmt.Errorf("%s file is missing", runFileName)
 }
 
 func pushImage(imageID, imageTag string) error {

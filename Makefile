@@ -83,7 +83,7 @@ build_anywhere: prepare_dirs
 
 mock_update:
 	$(GOBIN)/mockgen -source=app/factory.go -package=app -destination=app/factory_mock_test.go
-	$(GOBIN)/mockgen -source=app/file_reader.go -package=app -destination=app/file_reader_mock_test.go
+	$(GOBIN)/mockgen -source=app/archive_reader.go -package=app -destination=app/archive_reader_mock_test.go
 	$(GOBIN)/mockgen -source=app/image_builder.go -package=app -destination=app/image_builder_mock.go
 	$(GOBIN)/mockgen -source=vendor/github.com/trustedanalytics/tap-catalog/client/client.go -package=app -destination=app/catalog_mock_test.go
 	$(GOBIN)/mockgen -source=vendor/github.com/trustedanalytics/tap-blob-store/client/client.go -package=app -destination=app/blob_store_mock_test.go

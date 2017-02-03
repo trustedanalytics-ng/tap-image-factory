@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2016 Intel Corporation
+ * Copyright (c) 2017 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,17 +22,17 @@ import (
 	"io"
 )
 
-type FileReader interface {
+type ArchiveReader interface {
 	NewGzipReader(reader io.Reader) (*gzip.Reader, error)
 	NewTarReader(reader io.Reader) *tar.Reader
 }
 
-type ArchiveReader struct{}
+type DefaultArchiveReader struct{}
 
-func (c *ArchiveReader) NewGzipReader(reader io.Reader) (*gzip.Reader, error) {
+func (c *DefaultArchiveReader) NewGzipReader(reader io.Reader) (*gzip.Reader, error) {
 	return gzip.NewReader(reader)
 }
 
-func (c *ArchiveReader) NewTarReader(reader io.Reader) *tar.Reader {
+func (c *DefaultArchiveReader) NewTarReader(reader io.Reader) *tar.Reader {
 	return tar.NewReader(reader)
 }
