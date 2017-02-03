@@ -168,7 +168,7 @@ func writeBuildContext(imageArtifact *os.File, dockerfile io.Reader, blobType ca
 
 	if blobType != catalogModels.BlobTypeTarGz {
 		runShBytes := []byte(blobTypeRunCommandMap[blobType])
-		err = writeBytesToTar("run.sh", runShBytes, tw)
+		err = writeBytesToTar(runFileName, runShBytes, tw)
 		if err != nil {
 			return err
 		}

@@ -16,8 +16,13 @@
 package app
 
 import (
+	"archive/tar"
+	"bufio"
+	"bytes"
+	"compress/gzip"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"testing"
 
@@ -56,12 +61,17 @@ func TestBuildAndPushImage(t *testing.T) {
 
 	Convey("Test BuildAndPushImage", t, func() {
 		Convey("Given that all underneath functions invokes successfully", func() {
+			buffer := getTarGzBufferWithFile(t, runFileName)
+			gzipReader, tarReader := getReaders(buffer, t)
+			defer gzipReader.Close()
 			gomock.InOrder(
 				mocks.MockTapCatalogApiConnector.EXPECT().
 					UpdateImage(fakeImage.Id, makePatchUserFriendly(catalogModels.ImageStatePending, catalogModels.ImageStateBuilding, t)).
 					Return(fakeImage, http.StatusOK, nil),
 				mocks.MockTapCatalogApiConnector.EXPECT().GetImage(fakeImage.Id).Return(fakeImage, http.StatusOK, nil),
 				mocks.MockBlobStoreConnector.EXPECT().GetBlob(fakeImage.Id, gomock.Any()).Return(nil),
+				mocks.MockReader.EXPECT().NewGzipReader(gomock.Any()).Return(gzipReader, nil),
+				mocks.MockReader.EXPECT().NewTarReader(gomock.Any()).Return(tarReader),
 				mocks.MockDockerConnector.EXPECT().
 					CreateImage(gomock.Any(), fakeImage.Type, fakeImage.BlobType, GetImageWithHubAddressWithoutProtocol(fakeImage.Id)).
 					Return(nil),
@@ -201,9 +211,14 @@ func TestApp_BuildImage(t *testing.T) {
 	testCases := []SimpleTestCaseDefinition{
 		{
 			mockedCalls: func() GomockCalls {
+				buffer := getTarGzBufferWithFile(t, runFileName)
+				gzipReader, tarReader := getReaders(buffer, t)
+				defer gzipReader.Close()
 				return GomockCalls{
 					mocks.MockBlobStoreConnector.EXPECT().GetBlob(fakeImage.Id,
 						gomock.Any()).Return(nil),
+					mocks.MockReader.EXPECT().NewGzipReader(gomock.Any()).Return(gzipReader, nil),
+					mocks.MockReader.EXPECT().NewTarReader(gomock.Any()).Return(tarReader),
 					mocks.MockDockerConnector.EXPECT().CreateImage(gomock.Any(), fakeImage.Type,
 						fakeImage.BlobType, GetImageWithHubAddressWithoutProtocol(fakeImage.Id)).Return(nil),
 				}
@@ -217,18 +232,37 @@ func TestApp_BuildImage(t *testing.T) {
 						gomock.Any()).Return(errors.New("get error")),
 				}
 			},
-			testDescription:   "Given that blob-store respond badly",
+			testDescription:   "Given that blob-store API responds badly",
 			shouldReturnError: true,
 		},
 		{
 			mockedCalls: func() GomockCalls {
+				buffer := getTarGzBufferWithFile(t, runFileName)
+				gzipReader, tarReader := getReaders(buffer, t)
+				defer gzipReader.Close()
 				return GomockCalls{
 					mocks.MockBlobStoreConnector.EXPECT().GetBlob(fakeImage.Id, gomock.Any()).Return(nil),
+					mocks.MockReader.EXPECT().NewGzipReader(gomock.Any()).Return(gzipReader, nil),
+					mocks.MockReader.EXPECT().NewTarReader(gomock.Any()).Return(tarReader),
 					mocks.MockDockerConnector.EXPECT().CreateImage(gomock.Any(), fakeImage.Type,
 						fakeImage.BlobType, GetImageWithHubAddressWithoutProtocol(fakeImage.Id)).Return(errors.New("oops")),
 				}
 			},
 			testDescription:   "Given that docker respond badly",
+			shouldReturnError: true,
+		},
+		{
+			mockedCalls: func() GomockCalls {
+				buffer := getTarGzBufferWithFile(t, "some_file.txt")
+				gzipReader, tarReader := getReaders(buffer, t)
+				defer gzipReader.Close()
+				return GomockCalls{
+					mocks.MockBlobStoreConnector.EXPECT().GetBlob(fakeImage.Id, gomock.Any()).Return(nil),
+					mocks.MockReader.EXPECT().NewGzipReader(gomock.Any()).Return(gzipReader, nil),
+					mocks.MockReader.EXPECT().NewTarReader(gomock.Any()).Return(tarReader),
+				}
+			},
+			testDescription:   fmt.Sprintf("Given that tar.gz file does not contain %s file", runFileName),
 			shouldReturnError: true,
 		},
 	}
@@ -331,4 +365,49 @@ func TestCleanupBlob(t *testing.T) {
 			mockCtrl.Finish()
 		})
 	})
+}
+
+func getTarGzBufferWithFile(t *testing.T, path string) *bytes.Buffer {
+	buffer := new(bytes.Buffer)
+
+	bufferWriter := bufio.NewWriter(buffer)
+	defer bufferWriter.Flush()
+
+	gzipWriter := gzip.NewWriter(bufferWriter)
+	defer gzipWriter.Close()
+
+	tarWriter := tar.NewWriter(gzipWriter)
+	defer tarWriter.Close()
+
+	if err := addFile(tarWriter, path); err != nil {
+		t.Fatalf("cannot add file %q: %v", path, err)
+	}
+
+	return buffer
+}
+
+func addFile(writer *tar.Writer, path string) error {
+	header := &tar.Header{}
+	header.Name = path
+	header.Size = 1
+	header.Typeflag = tar.TypeReg
+
+	if err := writer.WriteHeader(header); err != nil {
+		return err
+	}
+
+	if _, err := writer.Write([]byte{'a'}); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func getReaders(reader io.Reader, t *testing.T) (*gzip.Reader, *tar.Reader) {
+	gzipReader, err := gzip.NewReader(reader)
+	if err != nil {
+		t.Fatalf("gzip.newReader failed: %v", err)
+	}
+	tarReader := tar.NewReader(gzipReader)
+	return gzipReader, tarReader
 }
