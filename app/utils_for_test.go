@@ -24,7 +24,7 @@ import (
 	"github.com/gocraft/web"
 	"github.com/golang/mock/gomock"
 
-	"github.com/trustedanalytics/tap-image-factory/client"
+	"github.com/trustedanalytics-ng/tap-image-factory/client"
 )
 
 type MockPack struct {

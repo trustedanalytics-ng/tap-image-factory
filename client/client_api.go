@@ -21,7 +21,7 @@ import (
 	"fmt"
 	"net/http"
 
-	brokerHttp "github.com/trustedanalytics/tap-go-common/http"
+	brokerHttp "github.com/trustedanalytics-ng/tap-go-common/http"
 )
 
 type TapApiImageFactoryApi interface {

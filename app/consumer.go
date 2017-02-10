@@ -20,9 +20,9 @@ import (
 
 	"github.com/streadway/amqp"
 
-	commonHttp "github.com/trustedanalytics/tap-go-common/http"
-	"github.com/trustedanalytics/tap-go-common/queue"
-	"github.com/trustedanalytics/tap-image-factory/models"
+	commonHttp "github.com/trustedanalytics-ng/tap-go-common/http"
+	"github.com/trustedanalytics-ng/tap-go-common/queue"
+	"github.com/trustedanalytics-ng/tap-image-factory/models"
 )
 
 const (

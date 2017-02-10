@@ -55,8 +55,8 @@ deps_fetch_specific: bin/govendor
 	$(GOBIN)/govendor fetch -v $(DEP_URL)
 
 deps_update_tap: verify_gopath
-	$(GOBIN)/govendor update github.com/trustedanalytics/...
-	$(GOBIN)/govendor remove github.com/trustedanalytics/$(APP_NAME)/...
+	$(GOBIN)/govendor update github.com/trustedanalytics-ng/...
+	$(GOBIN)/govendor remove github.com/trustedanalytics-ng/$(APP_NAME)/...
 	@echo "Done"
 
 verify_gopath:
@@ -69,13 +69,13 @@ test: verify_gopath
 	go test --cover $(APP_DIR_LIST)
 	
 prepare_dirs:
-	mkdir -p ./temp/src/github.com/trustedanalytics/tap-image-factory
+	mkdir -p ./temp/src/github.com/trustedanalytics-ng/tap-image-factory
 	$(eval REPOFILES=$(shell pwd)/*)
-	ln -sf $(REPOFILES) temp/src/github.com/trustedanalytics/tap-image-factory
+	ln -sf $(REPOFILES) temp/src/github.com/trustedanalytics-ng/tap-image-factory
 
 build_anywhere: prepare_dirs
 	$(eval GOPATH=$(shell cd ./temp; pwd))
-	$(eval APP_DIR_LIST=$(shell GOPATH=$(GOPATH) go list ./temp/src/github.com/trustedanalytics/tap-image-factory/... | grep -v /vendor/))
+	$(eval APP_DIR_LIST=$(shell GOPATH=$(GOPATH) go list ./temp/src/github.com/trustedanalytics-ng/tap-image-factory/... | grep -v /vendor/))
 	GOPATH=$(GOPATH) CGO_ENABLED=0 go build -tags netgo $(APP_DIR_LIST)
 	rm -Rf application && mkdir application
 	cp ./tap-image-factory ./application/tap-image-factory
@@ -85,6 +85,6 @@ mock_update:
 	$(GOBIN)/mockgen -source=app/factory.go -package=app -destination=app/factory_mock_test.go
 	$(GOBIN)/mockgen -source=app/archive_reader.go -package=app -destination=app/archive_reader_mock_test.go
 	$(GOBIN)/mockgen -source=app/image_builder.go -package=app -destination=app/image_builder_mock.go
-	$(GOBIN)/mockgen -source=vendor/github.com/trustedanalytics/tap-catalog/client/client.go -package=app -destination=app/catalog_mock_test.go
-	$(GOBIN)/mockgen -source=vendor/github.com/trustedanalytics/tap-blob-store/client/client.go -package=app -destination=app/blob_store_mock_test.go
+	$(GOBIN)/mockgen -source=vendor/github.com/trustedanalytics-ng/tap-catalog/client/client.go -package=app -destination=app/catalog_mock_test.go
+	$(GOBIN)/mockgen -source=vendor/github.com/trustedanalytics-ng/tap-blob-store/client/client.go -package=app -destination=app/blob_store_mock_test.go
 	./add_license.sh

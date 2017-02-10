@@ -18,9 +18,9 @@ package main
 import (
 	"sync"
 
-	httpGoCommon "github.com/trustedanalytics/tap-go-common/http"
-	"github.com/trustedanalytics/tap-go-common/util"
-	"github.com/trustedanalytics/tap-image-factory/app"
+	httpGoCommon "github.com/trustedanalytics-ng/tap-go-common/http"
+	"github.com/trustedanalytics-ng/tap-go-common/util"
+	"github.com/trustedanalytics-ng/tap-image-factory/app"
 )
 
 var waitGroup = &sync.WaitGroup{}

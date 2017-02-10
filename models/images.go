@@ -17,7 +17,7 @@
 package models
 
 import (
-	catalogModels "github.com/trustedanalytics/tap-catalog/models"
+	catalogModels "github.com/trustedanalytics-ng/tap-catalog/models"
 )
 
 var (

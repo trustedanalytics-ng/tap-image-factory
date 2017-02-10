@@ -20,7 +20,7 @@ package app
 
 import (
 	gomock "github.com/golang/mock/gomock"
-	models "github.com/trustedanalytics/tap-catalog/models"
+	models "github.com/trustedanalytics-ng/tap-catalog/models"
 	io "io"
 	os "os"
 )

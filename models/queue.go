@@ -16,7 +16,7 @@
 
 package models
 
-import "github.com/trustedanalytics/tap-catalog/models"
+import "github.com/trustedanalytics-ng/tap-catalog/models"
 
 const (
 	IMAGE_FACTORY_QUEUE_NAME        = "tap-image-factory"

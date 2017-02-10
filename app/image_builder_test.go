@@ -22,8 +22,8 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 
-	catalogModels "github.com/trustedanalytics/tap-catalog/models"
-	imageFactoryModels "github.com/trustedanalytics/tap-image-factory/models"
+	catalogModels "github.com/trustedanalytics-ng/tap-catalog/models"
+	imageFactoryModels "github.com/trustedanalytics-ng/tap-image-factory/models"
 )
 
 var (

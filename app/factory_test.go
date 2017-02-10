@@ -29,8 +29,8 @@ import (
 	"github.com/golang/mock/gomock"
 	. "github.com/smartystreets/goconvey/convey"
 
-	"github.com/trustedanalytics/tap-catalog/builder"
-	catalogModels "github.com/trustedanalytics/tap-catalog/models"
+	"github.com/trustedanalytics-ng/tap-catalog/builder"
+	catalogModels "github.com/trustedanalytics-ng/tap-catalog/models"
 )
 
 type GomockCalls []*gomock.Call
