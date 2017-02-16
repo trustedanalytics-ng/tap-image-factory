@@ -24,12 +24,16 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/trustedanalytics-ng/tap-catalog/builder"
 	catalogModels "github.com/trustedanalytics-ng/tap-catalog/models"
 )
 
-const runFileName = "run.sh"
+const (
+	runFileName     = "run.sh"
+	defaultImageTag = "latest"
+)
 
 type ImageProcessingErr struct {
 	imageID   string
@@ -44,7 +48,23 @@ type FactoryAPI interface {
 	BuildAndPushImage(imageID string) error
 }
 
-type Factory struct{}
+type ImageReadinessChecker interface {
+	IsImageReady(imageID, imageTag string) (bool, error)
+}
+
+type Factory struct {
+	imageProber                ImageReadinessChecker
+	imageReadinessProbeRetries uint32
+	imageReadinessProbeDelay   time.Duration
+}
+
+func NewFactoryWithCustomProbeTimes(prober ImageReadinessChecker, imageReadinessProbeRetries uint32, imageReadinessProbeDelaySeconds time.Duration) FactoryAPI {
+	return &Factory{
+		imageProber:                prober,
+		imageReadinessProbeRetries: imageReadinessProbeRetries,
+		imageReadinessProbeDelay:   imageReadinessProbeDelaySeconds,
+	}
+}
 
 func (f *Factory) BuildAndPushImage(imageID string) error {
 	logger.Debug("started")
@@ -71,14 +91,19 @@ func (f *Factory) BuildAndPushImage(imageID string) error {
 	}
 	defer cleanupBlob(imageID)
 
-	imageTag, err := buildImage(imageInfo)
+	imageAddress, err := buildImage(imageInfo)
 	if err != nil {
 		appID := catalogModels.GetApplicationId(imageID)
 		updateLastStateChangeReason(appID, err.Error())
 		return err
 	}
 
-	err = pushImage(imageID, imageTag)
+	err = pushImage(imageID, imageAddress)
+	if err != nil {
+		return err
+	}
+
+	err = f.ensureImageReady(imageID, defaultImageTag)
 	if err != nil {
 		return err
 	}
@@ -90,6 +115,27 @@ func (f *Factory) BuildAndPushImage(imageID string) error {
 
 	logger.Info("Image build SUCCESS! Id:", imageID)
 	return nil
+}
+
+func (f *Factory) ensureImageReady(imageID, imageTag string) error {
+	for i := uint32(0); i < f.imageReadinessProbeRetries; i++ {
+		imageReady, err := f.imageProber.IsImageReady(imageID, defaultImageTag)
+		if err != nil {
+			logger.Errorf("Failed to check image readiness: %v", err)
+			return ImageProcessingErr{imageID: imageID, parentErr: err}
+		}
+
+		if imageReady {
+			return nil
+		}
+
+		logger.Warningf("Image: %v still not ready in docker-registry. retrying...", imageID)
+		time.Sleep(f.imageReadinessProbeDelay)
+	}
+
+	err := fmt.Errorf("Image build ERROR! Id: %v - docker registry readiness timeout!", imageID)
+	logger.Error(err)
+	return ImageProcessingErr{imageID: imageID, parentErr: err}
 }
 
 func markImageAs(state catalogModels.ImageState, imageID string) error {

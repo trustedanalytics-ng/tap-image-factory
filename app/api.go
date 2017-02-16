@@ -18,6 +18,8 @@ package app
 
 import (
 	"net/http"
+	"os"
+	"time"
 
 	"github.com/gocraft/web"
 	"github.com/op/go-logging"
@@ -27,6 +29,7 @@ import (
 	commonHttp "github.com/trustedanalytics-ng/tap-go-common/http"
 	commonLogger "github.com/trustedanalytics-ng/tap-go-common/logger"
 	"github.com/trustedanalytics-ng/tap-image-factory/models"
+	"github.com/trustedanalytics-ng/tap-go-common/util"
 )
 
 var logger = initLogger()
@@ -49,6 +52,28 @@ type Context struct {
 
 var ctx *Context
 
+var (
+	dockerRegistryURL = os.Getenv("HUB_ADDRESS")
+	caCertFilepath    = os.Getenv("KUBE_CA_CERT_PATH")
+	certFilepath      = os.Getenv("KUBE_CA_CLIENT_CERT_PATH")
+	keyFilepath       = os.Getenv("KUBE_CA_CLIENT_KEY_PATH")
+)
+
+const (
+	imageReadinessProbeRetriesEnvVarName      = "IMAGE_READY_MAX_RETRIES"
+	defaultImageReadinessProbeRetries         = uint32(20)
+	imageReadinessProbeDelaySecondsEnvVarName = "IMAGE_READY_BACK_OFF_DELAY_SECS"
+	defaultImageReadinessProbeDelaySeconds    = 5
+)
+
+func parseUint32EnvVarOrWarning(envVarName string, defaultValue uint32) uint32 {
+	result, err := util.GetUint32EnvValueOrDefault(envVarName, defaultValue)
+	if err != nil {
+		logger.Warningf("parsing %v failed - using default value: %v . err: %v", envVarName, defaultValue, err)
+	}
+	return result
+}
+
 func SetupContext() *Context {
 	if ctx == nil {
 		ctx = &Context{}
@@ -70,7 +95,16 @@ func SetupContext() *Context {
 		}
 		ctx.DockerConnector = dockerClient
 
-		ctx.Factory = &Factory{}
+		dockerRegistryProber, err := NewDockerRegistryWithTLSClientCerts("https://"+dockerRegistryURL, caCertFilepath, certFilepath, keyFilepath)
+		if err != nil {
+			logger.Panic(err)
+		}
+
+		imageReadinessProbeRetries := parseUint32EnvVarOrWarning(imageReadinessProbeRetriesEnvVarName, defaultImageReadinessProbeRetries)
+		imageReadinessProbeDelaySeconds := parseUint32EnvVarOrWarning(imageReadinessProbeDelaySecondsEnvVarName, defaultImageReadinessProbeDelaySeconds)
+
+		ctx.Factory = NewFactoryWithCustomProbeTimes(dockerRegistryProber,
+			imageReadinessProbeRetries, time.Duration(imageReadinessProbeDelaySeconds)*time.Second)
 
 		ctx.Reader = &DefaultArchiveReader{}
 	}

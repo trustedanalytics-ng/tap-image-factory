@@ -25,6 +25,7 @@ import (
 	"io"
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/golang/mock/gomock"
 	. "github.com/smartystreets/goconvey/convey"
@@ -51,7 +52,8 @@ func makePatchUserFriendly(oldState interface{}, newState interface{}, t *testin
 
 func TestBuildAndPushImage(t *testing.T) {
 	mockCtrl, mocks, _, _ := prepareMocksAndClient(t)
-	factory := Factory{}
+
+	factory := NewFactoryWithCustomProbeTimes(mocks.MockImageChecker, defaultImageReadinessProbeRetries, defaultImageReadinessProbeDelaySeconds*time.Second)
 
 	fakeImage := catalogModels.Image{
 		Id:       "fake-id",
@@ -76,6 +78,7 @@ func TestBuildAndPushImage(t *testing.T) {
 					CreateImage(gomock.Any(), fakeImage.Type, fakeImage.BlobType, GetImageWithHubAddressWithoutProtocol(fakeImage.Id)).
 					Return(nil),
 				mocks.MockDockerConnector.EXPECT().PushImage(GetImageWithHubAddressWithoutProtocol(fakeImage.Id)).Return(nil),
+				mocks.MockImageChecker.EXPECT().IsImageReady(fakeImage.Id, defaultImageTag).Return(true, nil),
 				mocks.MockTapCatalogApiConnector.EXPECT().
 					UpdateImage(fakeImage.Id, makePatchUserFriendly(catalogModels.ImageStateBuilding, catalogModels.ImageStateReady, t)).
 					Return(catalogModels.Image{}, http.StatusOK, nil),
@@ -360,6 +363,69 @@ func TestCleanupBlob(t *testing.T) {
 				cleanupBlob(imageID)
 			})
 		}
+
+		Reset(func() {
+			mockCtrl.Finish()
+		})
+	})
+}
+
+func TestEnsureImageReady(t *testing.T) {
+	mockCtrl, mocks, _, _ := prepareMocksAndClient(t)
+
+	Convey("Test ensureImageReady", t, func() {
+		imageID := "fake-id"
+		maxRetries := uint32(3)
+
+		factory := NewFactoryWithCustomProbeTimes(mocks.MockImageChecker, maxRetries, time.Nanosecond).(*Factory)
+
+		Convey("Given that imageProber returns immediately readiness confirmation ", func() {
+			mocks.MockImageChecker.EXPECT().IsImageReady(imageID, defaultImageTag).Return(true, nil)
+
+			err := factory.ensureImageReady(imageID, defaultImageTag)
+
+			Convey("No error should be returned", func() {
+				So(err, ShouldBeNil)
+			})
+		})
+
+		Convey("Given that imageProber returns readiness confirmation after some time", func() {
+			gomock.InOrder(
+				mocks.MockImageChecker.EXPECT().IsImageReady(imageID, defaultImageTag).Return(false, nil),
+				mocks.MockImageChecker.EXPECT().IsImageReady(imageID, defaultImageTag).Return(false, nil),
+				mocks.MockImageChecker.EXPECT().IsImageReady(imageID, defaultImageTag).Return(true, nil),
+			)
+
+			err := factory.ensureImageReady(imageID, defaultImageTag)
+
+			Convey("No error should be returned", func() {
+				So(err, ShouldBeNil)
+			})
+		})
+
+		Convey("Given that imageProber exceeds retries", func() {
+			gomock.InOrder(
+				mocks.MockImageChecker.EXPECT().IsImageReady(imageID, defaultImageTag).Return(false, nil),
+				mocks.MockImageChecker.EXPECT().IsImageReady(imageID, defaultImageTag).Return(false, nil),
+				mocks.MockImageChecker.EXPECT().IsImageReady(imageID, defaultImageTag).Return(false, nil),
+			)
+
+			err := factory.ensureImageReady(imageID, defaultImageTag)
+
+			Convey("error should be returned", func() {
+				So(err, ShouldNotBeNil)
+			})
+		})
+
+		Convey("Given that imageProber returns error", func() {
+			mocks.MockImageChecker.EXPECT().IsImageReady(imageID, defaultImageTag).Return(false, errors.New("fake error"))
+
+			err := factory.ensureImageReady(imageID, defaultImageTag)
+
+			Convey("error should be returned", func() {
+				So(err, ShouldNotBeNil)
+			})
+		})
 
 		Reset(func() {
 			mockCtrl.Finish()

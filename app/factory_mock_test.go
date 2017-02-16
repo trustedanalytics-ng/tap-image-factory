@@ -52,3 +52,35 @@ func (_m *MockFactoryAPI) BuildAndPushImage(imageID string) error {
 func (_mr *_MockFactoryAPIRecorder) BuildAndPushImage(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "BuildAndPushImage", arg0)
 }
+
+// Mock of ImageReadinessChecker interface
+type MockImageReadinessChecker struct {
+	ctrl     *gomock.Controller
+	recorder *_MockImageReadinessCheckerRecorder
+}
+
+// Recorder for MockImageReadinessChecker (not exported)
+type _MockImageReadinessCheckerRecorder struct {
+	mock *MockImageReadinessChecker
+}
+
+func NewMockImageReadinessChecker(ctrl *gomock.Controller) *MockImageReadinessChecker {
+	mock := &MockImageReadinessChecker{ctrl: ctrl}
+	mock.recorder = &_MockImageReadinessCheckerRecorder{mock}
+	return mock
+}
+
+func (_m *MockImageReadinessChecker) EXPECT() *_MockImageReadinessCheckerRecorder {
+	return _m.recorder
+}
+
+func (_m *MockImageReadinessChecker) IsImageReady(imageID string, imageTag string) (bool, error) {
+	ret := _m.ctrl.Call(_m, "IsImageReady", imageID, imageTag)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockImageReadinessCheckerRecorder) IsImageReady(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "IsImageReady", arg0, arg1)
+}

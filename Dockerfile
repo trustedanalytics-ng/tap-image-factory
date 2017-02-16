@@ -18,6 +18,7 @@ MAINTAINER Joanna Taryma <joanna.taryma@intel.com>
 
 
 RUN mkdir -p /opt/app
+RUN mkdir -p /etc/kubernetes-ca
 ADD application/tap-image-factory /opt/app
 
 RUN chmod +x /opt/app/tap-image-factory
