@@ -55,37 +55,99 @@ func TestBuildAndPushImage(t *testing.T) {
 
 	factory := NewFactoryWithCustomProbeTimes(mocks.MockImageChecker, defaultImageReadinessProbeRetries, defaultImageReadinessProbeDelaySeconds*time.Second)
 
-	fakeImage := catalogModels.Image{
+	fakeImageTarGz := catalogModels.Image{
+		Id:       "fake-id",
+		Type:     catalogModels.ImageTypeGo,
+		BlobType: catalogModels.BlobTypeTarGz,
+	}
+
+	fakeImageJar := catalogModels.Image{
+		Id:       "fake-id",
+		Type:     catalogModels.ImageTypeJava,
+		BlobType: catalogModels.BlobTypeJar,
+	}
+
+	fakeImageExec := catalogModels.Image{
 		Id:       "fake-id",
 		Type:     catalogModels.ImageTypeGo,
 		BlobType: catalogModels.BlobTypeExec,
 	}
 
 	Convey("Test BuildAndPushImage", t, func() {
-		Convey("Given that all underneath functions invokes successfully", func() {
+		Convey("Given TarGz image and that all underneath functions invokes successfully", func() {
 			buffer := getTarGzBufferWithFile(t, runFileName)
 			gzipReader, tarReader := getReaders(buffer, t)
 			defer gzipReader.Close()
 			gomock.InOrder(
 				mocks.MockTapCatalogApiConnector.EXPECT().
-					UpdateImage(fakeImage.Id, makePatchUserFriendly(catalogModels.ImageStatePending, catalogModels.ImageStateBuilding, t)).
-					Return(fakeImage, http.StatusOK, nil),
-				mocks.MockTapCatalogApiConnector.EXPECT().GetImage(fakeImage.Id).Return(fakeImage, http.StatusOK, nil),
-				mocks.MockBlobStoreConnector.EXPECT().GetBlob(fakeImage.Id, gomock.Any()).Return(nil),
+					UpdateImage(fakeImageTarGz.Id, makePatchUserFriendly(catalogModels.ImageStatePending, catalogModels.ImageStateBuilding, t)).
+					Return(fakeImageTarGz, http.StatusOK, nil),
+				mocks.MockTapCatalogApiConnector.EXPECT().GetImage(fakeImageTarGz.Id).Return(fakeImageTarGz, http.StatusOK, nil),
+				mocks.MockBlobStoreConnector.EXPECT().GetBlob(fakeImageTarGz.Id, gomock.Any()).Return(nil),
 				mocks.MockReader.EXPECT().NewGzipReader(gomock.Any()).Return(gzipReader, nil),
 				mocks.MockReader.EXPECT().NewTarReader(gomock.Any()).Return(tarReader),
 				mocks.MockDockerConnector.EXPECT().
-					CreateImage(gomock.Any(), fakeImage.Type, fakeImage.BlobType, GetImageWithHubAddressWithoutProtocol(fakeImage.Id)).
+					CreateImage(gomock.Any(), fakeImageTarGz.Type, fakeImageTarGz.BlobType, GetImageWithHubAddressWithoutProtocol(fakeImageTarGz.Id)).
 					Return(nil),
-				mocks.MockDockerConnector.EXPECT().PushImage(GetImageWithHubAddressWithoutProtocol(fakeImage.Id)).Return(nil),
-				mocks.MockImageChecker.EXPECT().IsImageReady(fakeImage.Id, defaultImageTag).Return(true, nil),
+				mocks.MockDockerConnector.EXPECT().PushImage(GetImageWithHubAddressWithoutProtocol(fakeImageTarGz.Id)).Return(nil),
+				mocks.MockImageChecker.EXPECT().IsImageReady(fakeImageTarGz.Id, defaultImageTag).Return(true, nil),
 				mocks.MockTapCatalogApiConnector.EXPECT().
-					UpdateImage(fakeImage.Id, makePatchUserFriendly(catalogModels.ImageStateBuilding, catalogModels.ImageStateReady, t)).
+					UpdateImage(fakeImageTarGz.Id, makePatchUserFriendly(catalogModels.ImageStateBuilding, catalogModels.ImageStateReady, t)).
 					Return(catalogModels.Image{}, http.StatusOK, nil),
-				mocks.MockBlobStoreConnector.EXPECT().DeleteBlob(fakeImage.Id).Return(http.StatusNoContent, nil),
+				mocks.MockBlobStoreConnector.EXPECT().DeleteBlob(fakeImageTarGz.Id).Return(http.StatusNoContent, nil),
 			)
 
-			err := factory.BuildAndPushImage(fakeImage.Id)
+			err := factory.BuildAndPushImage(fakeImageTarGz.Id)
+
+			Convey("No error should be returned", func() {
+				So(err, ShouldBeNil)
+			})
+		})
+
+		Convey("Given Jar image and that all underneath functions invokes successfully", func() {
+			gomock.InOrder(
+				mocks.MockTapCatalogApiConnector.EXPECT().
+					UpdateImage(fakeImageJar.Id, makePatchUserFriendly(catalogModels.ImageStatePending, catalogModels.ImageStateBuilding, t)).
+					Return(fakeImageJar, http.StatusOK, nil),
+				mocks.MockTapCatalogApiConnector.EXPECT().GetImage(fakeImageJar.Id).Return(fakeImageJar, http.StatusOK, nil),
+				mocks.MockBlobStoreConnector.EXPECT().GetBlob(fakeImageJar.Id, gomock.Any()).Return(nil),
+				mocks.MockDockerConnector.EXPECT().
+					CreateImage(gomock.Any(), fakeImageJar.Type, fakeImageJar.BlobType, GetImageWithHubAddressWithoutProtocol(fakeImageJar.Id)).
+					Return(nil),
+				mocks.MockDockerConnector.EXPECT().PushImage(GetImageWithHubAddressWithoutProtocol(fakeImageJar.Id)).Return(nil),
+				mocks.MockImageChecker.EXPECT().IsImageReady(fakeImageJar.Id, defaultImageTag).Return(true, nil),
+				mocks.MockTapCatalogApiConnector.EXPECT().
+					UpdateImage(fakeImageJar.Id, makePatchUserFriendly(catalogModels.ImageStateBuilding, catalogModels.ImageStateReady, t)).
+					Return(catalogModels.Image{}, http.StatusOK, nil),
+				mocks.MockBlobStoreConnector.EXPECT().DeleteBlob(fakeImageJar.Id).Return(http.StatusNoContent, nil),
+			)
+
+			err := factory.BuildAndPushImage(fakeImageJar.Id)
+
+			Convey("No error should be returned", func() {
+				So(err, ShouldBeNil)
+			})
+		})
+
+		Convey("Given Exec image and that all underneath functions invokes successfully", func() {
+			gomock.InOrder(
+				mocks.MockTapCatalogApiConnector.EXPECT().
+					UpdateImage(fakeImageExec.Id, makePatchUserFriendly(catalogModels.ImageStatePending, catalogModels.ImageStateBuilding, t)).
+					Return(fakeImageExec, http.StatusOK, nil),
+				mocks.MockTapCatalogApiConnector.EXPECT().GetImage(fakeImageExec.Id).Return(fakeImageExec, http.StatusOK, nil),
+				mocks.MockBlobStoreConnector.EXPECT().GetBlob(fakeImageExec.Id, gomock.Any()).Return(nil),
+				mocks.MockDockerConnector.EXPECT().
+					CreateImage(gomock.Any(), fakeImageExec.Type, fakeImageExec.BlobType, GetImageWithHubAddressWithoutProtocol(fakeImageExec.Id)).
+					Return(nil),
+				mocks.MockDockerConnector.EXPECT().PushImage(GetImageWithHubAddressWithoutProtocol(fakeImageExec.Id)).Return(nil),
+				mocks.MockImageChecker.EXPECT().IsImageReady(fakeImageExec.Id, defaultImageTag).Return(true, nil),
+				mocks.MockTapCatalogApiConnector.EXPECT().
+					UpdateImage(fakeImageExec.Id, makePatchUserFriendly(catalogModels.ImageStateBuilding, catalogModels.ImageStateReady, t)).
+					Return(catalogModels.Image{}, http.StatusOK, nil),
+				mocks.MockBlobStoreConnector.EXPECT().DeleteBlob(fakeImageExec.Id).Return(http.StatusNoContent, nil),
+			)
+
+			err := factory.BuildAndPushImage(fakeImageExec.Id)
 
 			Convey("No error should be returned", func() {
 				So(err, ShouldBeNil)
@@ -94,10 +156,10 @@ func TestBuildAndPushImage(t *testing.T) {
 
 		Convey("Given that catalog's update image return error", func() {
 			mocks.MockTapCatalogApiConnector.EXPECT().
-				UpdateImage(fakeImage.Id, makePatchUserFriendly(catalogModels.ImageStatePending, catalogModels.ImageStateBuilding, t)).
+				UpdateImage(fakeImageExec.Id, makePatchUserFriendly(catalogModels.ImageStatePending, catalogModels.ImageStateBuilding, t)).
 				Return(catalogModels.Image{}, http.StatusInternalServerError, errors.New("unknown error"))
 
-			err := factory.BuildAndPushImage(fakeImage.Id)
+			err := factory.BuildAndPushImage(fakeImageExec.Id)
 
 			Convey("Error should be returned", func() {
 				So(err, ShouldNotBeNil)
@@ -107,17 +169,17 @@ func TestBuildAndPushImage(t *testing.T) {
 		Convey("Given that catalog's get image return error", func() {
 			gomock.InOrder(
 				mocks.MockTapCatalogApiConnector.EXPECT().
-					UpdateImage(fakeImage.Id, makePatchUserFriendly(catalogModels.ImageStatePending, catalogModels.ImageStateBuilding, t)).
-					Return(fakeImage, http.StatusOK, nil),
+					UpdateImage(fakeImageTarGz.Id, makePatchUserFriendly(catalogModels.ImageStatePending, catalogModels.ImageStateBuilding, t)).
+					Return(fakeImageTarGz, http.StatusOK, nil),
 				mocks.MockTapCatalogApiConnector.EXPECT().
-					GetImage(fakeImage.Id).
+					GetImage(fakeImageTarGz.Id).
 					Return(catalogModels.Image{}, http.StatusInternalServerError, errors.New("unknown error")),
 				mocks.MockTapCatalogApiConnector.EXPECT().
-					UpdateImage(fakeImage.Id, makePatchUserFriendly(catalogModels.ImageStateBuilding, catalogModels.ImageStateError, t)).
-					Return(fakeImage, http.StatusOK, nil),
+					UpdateImage(fakeImageTarGz.Id, makePatchUserFriendly(catalogModels.ImageStateBuilding, catalogModels.ImageStateError, t)).
+					Return(fakeImageTarGz, http.StatusOK, nil),
 			)
 
-			err := factory.BuildAndPushImage(fakeImage.Id)
+			err := factory.BuildAndPushImage(fakeImageTarGz.Id)
 
 			Convey("Error should be returned", func() {
 				So(err, ShouldNotBeNil)
@@ -205,68 +267,123 @@ func TestGetImageInfoFromCatalog(t *testing.T) {
 func TestApp_BuildImage(t *testing.T) {
 	mockCtrl, mocks, _, _ := prepareMocksAndClient(t)
 
-	fakeImage := catalogModels.Image{
+	fakeImageTarGz := catalogModels.Image{
+		Id:       "fake-id",
+		Type:     catalogModels.ImageTypeGo,
+		BlobType: catalogModels.BlobTypeTarGz,
+	}
+
+	fakeImageExec := catalogModels.Image{
 		Id:       "fake-id",
 		Type:     catalogModels.ImageTypeGo,
 		BlobType: catalogModels.BlobTypeExec,
 	}
 
-	testCases := []SimpleTestCaseDefinition{
+	fakeImageJar := catalogModels.Image{
+		Id:       "fake-id",
+		Type:     catalogModels.ImageTypeJava,
+		BlobType: catalogModels.BlobTypeJar,
+	}
+
+	testCases := []struct {
+		SimpleTestCaseDefinition
+		image catalogModels.Image
+	}{
 		{
-			mockedCalls: func() GomockCalls {
-				buffer := getTarGzBufferWithFile(t, runFileName)
-				gzipReader, tarReader := getReaders(buffer, t)
-				defer gzipReader.Close()
-				return GomockCalls{
-					mocks.MockBlobStoreConnector.EXPECT().GetBlob(fakeImage.Id,
-						gomock.Any()).Return(nil),
-					mocks.MockReader.EXPECT().NewGzipReader(gomock.Any()).Return(gzipReader, nil),
-					mocks.MockReader.EXPECT().NewTarReader(gomock.Any()).Return(tarReader),
-					mocks.MockDockerConnector.EXPECT().CreateImage(gomock.Any(), fakeImage.Type,
-						fakeImage.BlobType, GetImageWithHubAddressWithoutProtocol(fakeImage.Id)).Return(nil),
-				}
+			image: fakeImageTarGz,
+			SimpleTestCaseDefinition: SimpleTestCaseDefinition{
+				mockedCalls: func() GomockCalls {
+					buffer := getTarGzBufferWithFile(t, runFileName)
+					gzipReader, tarReader := getReaders(buffer, t)
+					defer gzipReader.Close()
+					return GomockCalls{
+						mocks.MockBlobStoreConnector.EXPECT().GetBlob(fakeImageTarGz.Id,
+							gomock.Any()).Return(nil),
+						mocks.MockReader.EXPECT().NewGzipReader(gomock.Any()).Return(gzipReader, nil),
+						mocks.MockReader.EXPECT().NewTarReader(gomock.Any()).Return(tarReader),
+						mocks.MockDockerConnector.EXPECT().CreateImage(gomock.Any(), fakeImageTarGz.Type,
+							fakeImageTarGz.BlobType, GetImageWithHubAddressWithoutProtocol(fakeImageTarGz.Id)).Return(nil),
+					}
+				},
+				testDescription: "Given that blob-store and docker respond properly",
 			},
-			testDescription: "Given that blob-store and docker respond properly",
 		},
 		{
-			mockedCalls: func() GomockCalls {
-				return GomockCalls{
-					mocks.MockBlobStoreConnector.EXPECT().GetBlob(fakeImage.Id,
-						gomock.Any()).Return(errors.New("get error")),
-				}
+			image: fakeImageTarGz,
+			SimpleTestCaseDefinition: SimpleTestCaseDefinition{
+				mockedCalls: func() GomockCalls {
+					return GomockCalls{
+						mocks.MockBlobStoreConnector.EXPECT().GetBlob(fakeImageTarGz.Id,
+							gomock.Any()).Return(errors.New("get error")),
+					}
+				},
+				testDescription:   "Given that blob-store API responds badly",
+				shouldReturnError: true,
 			},
-			testDescription:   "Given that blob-store API responds badly",
-			shouldReturnError: true,
 		},
 		{
-			mockedCalls: func() GomockCalls {
-				buffer := getTarGzBufferWithFile(t, runFileName)
-				gzipReader, tarReader := getReaders(buffer, t)
-				defer gzipReader.Close()
-				return GomockCalls{
-					mocks.MockBlobStoreConnector.EXPECT().GetBlob(fakeImage.Id, gomock.Any()).Return(nil),
-					mocks.MockReader.EXPECT().NewGzipReader(gomock.Any()).Return(gzipReader, nil),
-					mocks.MockReader.EXPECT().NewTarReader(gomock.Any()).Return(tarReader),
-					mocks.MockDockerConnector.EXPECT().CreateImage(gomock.Any(), fakeImage.Type,
-						fakeImage.BlobType, GetImageWithHubAddressWithoutProtocol(fakeImage.Id)).Return(errors.New("oops")),
-				}
+			image: fakeImageTarGz,
+			SimpleTestCaseDefinition: SimpleTestCaseDefinition{
+				mockedCalls: func() GomockCalls {
+					buffer := getTarGzBufferWithFile(t, runFileName)
+					gzipReader, tarReader := getReaders(buffer, t)
+					defer gzipReader.Close()
+					return GomockCalls{
+						mocks.MockBlobStoreConnector.EXPECT().GetBlob(fakeImageTarGz.Id, gomock.Any()).Return(nil),
+						mocks.MockReader.EXPECT().NewGzipReader(gomock.Any()).Return(gzipReader, nil),
+						mocks.MockReader.EXPECT().NewTarReader(gomock.Any()).Return(tarReader),
+						mocks.MockDockerConnector.EXPECT().CreateImage(gomock.Any(), fakeImageTarGz.Type,
+							fakeImageTarGz.BlobType, GetImageWithHubAddressWithoutProtocol(fakeImageTarGz.Id)).Return(errors.New("oops")),
+					}
+				},
+				testDescription:   "Given that docker respond badly",
+				shouldReturnError: true,
 			},
-			testDescription:   "Given that docker respond badly",
-			shouldReturnError: true,
 		},
 		{
-			mockedCalls: func() GomockCalls {
-				buffer := getTarGzBufferWithFile(t, "some_file.txt")
-				gzipReader, tarReader := getReaders(buffer, t)
-				defer gzipReader.Close()
-				return GomockCalls{
-					mocks.MockBlobStoreConnector.EXPECT().GetBlob(fakeImage.Id, gomock.Any()).Return(nil),
-					mocks.MockReader.EXPECT().NewGzipReader(gomock.Any()).Return(gzipReader, nil),
-					mocks.MockReader.EXPECT().NewTarReader(gomock.Any()).Return(tarReader),
-				}
+			image: fakeImageTarGz,
+			SimpleTestCaseDefinition: SimpleTestCaseDefinition{
+				mockedCalls: func() GomockCalls {
+					buffer := getTarGzBufferWithFile(t, "some_file.txt")
+					gzipReader, tarReader := getReaders(buffer, t)
+					defer gzipReader.Close()
+					return GomockCalls{
+						mocks.MockBlobStoreConnector.EXPECT().GetBlob(fakeImageTarGz.Id, gomock.Any()).Return(nil),
+						mocks.MockReader.EXPECT().NewGzipReader(gomock.Any()).Return(gzipReader, nil),
+						mocks.MockReader.EXPECT().NewTarReader(gomock.Any()).Return(tarReader),
+					}
+				},
+				testDescription:   fmt.Sprintf("Given that tar.gz file does not contain %s file", runFileName),
+				shouldReturnError: true,
 			},
-			testDescription:   fmt.Sprintf("Given that tar.gz file does not contain %s file", runFileName),
-			shouldReturnError: true,
+		},
+		{
+			image: fakeImageJar,
+			SimpleTestCaseDefinition: SimpleTestCaseDefinition{
+				mockedCalls: func() GomockCalls {
+					return GomockCalls{
+						mocks.MockBlobStoreConnector.EXPECT().GetBlob(fakeImageJar.Id,
+							gomock.Any()).Return(nil),
+						mocks.MockDockerConnector.EXPECT().CreateImage(gomock.Any(), fakeImageJar.Type,
+							fakeImageJar.BlobType, GetImageWithHubAddressWithoutProtocol(fakeImageJar.Id)).Return(nil),
+					}
+				},
+				testDescription: "Given Jar image and blob-store and docker respond properly",
+			},
+		},
+		{
+			image: fakeImageExec,
+			SimpleTestCaseDefinition: SimpleTestCaseDefinition{
+				mockedCalls: func() GomockCalls {
+					return GomockCalls{
+						mocks.MockBlobStoreConnector.EXPECT().GetBlob(fakeImageExec.Id,
+							gomock.Any()).Return(nil),
+						mocks.MockDockerConnector.EXPECT().CreateImage(gomock.Any(), fakeImageExec.Type,
+							fakeImageExec.BlobType, GetImageWithHubAddressWithoutProtocol(fakeImageExec.Id)).Return(nil),
+					}
+				},
+				testDescription: "Given Exec image and blob-store and docker respond properly",
+			},
 		},
 	}
 
@@ -275,7 +392,7 @@ func TestApp_BuildImage(t *testing.T) {
 			Convey(testCase.testDescription, func() {
 				gomock.InOrder(testCase.mockedCalls()...)
 
-				imageTag, err := buildImage(fakeImage)
+				imageTag, err := buildImage(testCase.image)
 
 				if testCase.shouldReturnError {
 					Convey("Error should be returned", func() {
@@ -284,7 +401,7 @@ func TestApp_BuildImage(t *testing.T) {
 				} else {
 					Convey("No error should be returned, image returned should have given image ID", func() {
 						So(err, ShouldBeNil)
-						So(imageTag, ShouldEqual, GetImageWithHubAddressWithoutProtocol(fakeImage.Id))
+						So(imageTag, ShouldEqual, GetImageWithHubAddressWithoutProtocol(testCase.image.Id))
 					})
 				}
 			})

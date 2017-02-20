@@ -197,8 +197,10 @@ func buildImage(imageInfo catalogModels.Image) (string, error) {
 		return "", ImageProcessingErr{imageID: imageInfo.Id, parentErr: err}
 	}
 
-	if err = validateBlob(tempBlobFile); err != nil {
-		return "", ImageProcessingErr{imageID: imageInfo.Id, parentErr: err}
+	if imageInfo.BlobType == catalogModels.BlobTypeTarGz {
+		if err = validateTarGz(tempBlobFile); err != nil {
+			return "", ImageProcessingErr{imageID: imageInfo.Id, parentErr: err}
+		}
 	}
 
 	_, err = tempBlobFile.Seek(0, 0)
@@ -216,7 +218,7 @@ func buildImage(imageInfo catalogModels.Image) (string, error) {
 	return imageTag, nil
 }
 
-func validateBlob(reader io.Reader) error {
+func validateTarGz(reader io.Reader) error {
 	gzf, err := ctx.Reader.NewGzipReader(reader)
 	if err != nil {
 		err := fmt.Errorf("cannot parse file: %v", err)
